@@ -1,0 +1,57 @@
+import java.util.Random;
+import java.util.Scanner;
+
+/*
+ * DataSet.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class DataSet {
+
+  protected String name;
+  protected Attributes attributes = null;
+  protected Examples examples = null;
+  protected Random random;
+
+  /**
+   * Default constructor
+   */
+  public DataSet() {
+	  
+  }
+  public DataSet( String[] options ) {
+	  
+  }
+  /**
+   * Explicit constructor
+   * @param attributes
+   */
+  public DataSet( Attributes attributes ) {
+	  this.attributes = attributes;
+  }
+  public void add( Example example ) {
+	  
+  }
+  public Attributes getAttributes() {
+	  return this.attributes;
+  }
+  public Examples getExamples() {
+	  return this.examples;
+  }
+  public boolean getHasNumericAttributes() {
+	  return false;
+  }
+  public void load( String filename ) throws Exception {
+	  
+  }
+  private void parse( Scanner scanner ) throws Exception {
+	  
+  }
+  public void setRandom( Random random ) {
+	  this.random = random;
+  }
+  public String toString() {
+	  return null;
+  }
+  
+}

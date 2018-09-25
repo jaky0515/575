@@ -1,0 +1,48 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+/*
+ * Attributes.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class Attributes {
+
+  private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+  private boolean hasNumericAttributes = false;
+  private int classIndex;
+
+  public Attributes() {
+  }
+  public void add( Attribute attribute ) {
+	  
+  }
+  public int getClassIndex() {
+	  return this.classIndex;
+  }
+  public boolean getHasNumericAttributes() {
+	  return this.getHasNumericAttributes();
+  }
+  public Attribute get( int i ) {
+	  return attributes.get(i);
+  }
+  public Attribute getClassAttribute() {
+	  
+  }
+  public int getIndex( String name ) throws Exception {
+	  
+  }
+  public int size() {
+	  
+  }
+  public void parse( Scanner scanner ) throws Exception {
+	  
+  }
+  public void setClassIndex( int classIndex ) throws Exception {
+	  
+  }
+  public String toString() {
+	  return null;
+  }
+
+}

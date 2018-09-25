@@ -1,0 +1,54 @@
+/*
+ * NominalAttribute.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class NominalAttribute extends Attribute {
+	
+	/**
+	 * Default constructor.
+	 */
+	public NominalAttribute() {
+		super();
+	}
+	/**
+	 * Explicit constructor. Creates a nominal attribute with the specified name.
+	 * @param name - the name of this data set
+	 */
+	public NominalAttribute( String name ) {
+		super(name);
+	}
+	/**
+	 * Adds a new nominal value to the domain of this nominal attribute.
+	 * @param value - the attribute's new domain value
+	 */
+	public void addValue( String value ) {
+		
+	}
+	/**
+	 * Gets the size of this nominal attribute's domain.
+	 * @return an int storing the size of the domain
+	 */
+	public int size() {
+		return super.size();
+	}
+	/**
+	 * Returns the value of this nominal attribute at the specified index.
+	 * @param index - the attribute value's index
+	 * @return the attribute value at the specified index
+	 */
+	public String getValue( int index ) {
+		// update later
+		return null;
+	}
+	public int getIndex( String value ) throws Exception {
+		return 0;
+	}
+	public String toString() {
+		return null;
+	}
+	public boolean validValue( String value ) {
+		return false;
+	}
+
+}

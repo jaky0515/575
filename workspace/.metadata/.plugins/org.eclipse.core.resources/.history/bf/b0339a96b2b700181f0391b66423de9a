@@ -1,0 +1,41 @@
+/*
+ * TrainTestSets.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class TrainTestSets implements OptionHandler{
+
+  protected DataSet train;
+  protected DataSet test;
+
+  /**
+   * Default constructor
+   */
+  public TrainTestSets() {}
+  public TrainTestSets( String [] options ) throws Exception {
+	  // argument validation
+	  if(options.length < 2 || )
+  }
+  public TrainTestSets( DataSet train, DataSet test ) {
+	  
+  }
+  public DataSet getTrainingSet() {
+	  return null;
+  }
+  public DataSet getTestingSet() {
+	  return null;
+  }
+  public void setTrainingSet( DataSet train ) {
+	  
+  }
+  public void setTestingSet( DataSet test ) {
+	  
+  }
+  public void setOptions( String[] options ) throws Exception {
+	  
+  }
+  public String toString() {
+	  return null;
+  }
+  
+}

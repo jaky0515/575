@@ -1,0 +1,42 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+/*
+ * Examples.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class Examples extends ArrayList<Example> {
+
+  private Attributes attributes;	// the attributes structure for these examples
+
+  /**
+   * Explicit constructor
+   * @param attributes - the attributes for this set of examples
+   */
+  public Examples( Attributes attributes ) {
+	  this.attributes = attributes;
+  }
+  /**
+   * Given the attributes structure, parses the tokens in the scanner, makes Examples, and adds them to this Examples object
+   * @param scanner - a Scanner containing the examples' tokens
+   * @throws Exception - if an index is out of bounds or if a parse error occurs
+   */
+  public void parse( Scanner scanner ) throws Exception {
+	  // update later
+	  System.out.println(scanner.nextLine());
+	  // read examples
+	  while(scanner.hasNextLine()) {
+		  
+	  }
+  }
+  /**
+   * Returns a string representation of this Examples object.
+   * @return a string representation of this Examples object
+   */
+  public String toString() {
+	  // update later
+	  return null;
+  }
+
+}

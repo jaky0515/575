@@ -1,0 +1,53 @@
+import java.util.Scanner;
+
+/*
+ * AttributeFactory.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class AttributeFactory extends Object {
+
+	/**
+	 * Processes a single attribute declaration, consisting of the keyword &attribute, name, and either the keyword numeric or a list of nominal values.
+	 * @param scanner - a scanner containing the attribute's tokens
+	 * @return the constructed attribute
+	 * @throws Exception - if a parse exception occurs
+	 */
+	public static Attribute make( Scanner scanner ) throws Exception {
+		// update later
+		if( scanner == null ) {
+			throw new Exception("Invalid Scanner object passed-in!");
+		}
+		int idx = -1;
+		String name = "";
+		Attribute attr = null;
+		while( scanner.hasNext() ) {
+			idx++;
+			if(idx == 0 || idx == 1) {
+				// @attribute keyword; skip
+				continue;
+			}
+			else if(idx == 1) {
+				// set attribute name
+				name = scanner.next().trim();
+			}
+			else if(idx == 2 && scanner.next().trim().toLowerCase().equals("numeric")) {
+				if(scanner.next().trim().toLowerCase().equals("numeric")) {
+					// is a numeric attribute
+					attr = new NumericAttribute(name);
+					break;
+				}
+				else {
+					// is a nominal attribute
+					attr = new NominalAttribute(name)
+				}
+			}
+			else if(idx > 2) {
+				// is a nominal attribute
+				attr = new NominalAttribute(name);
+			}
+		}
+		return null;
+	}
+
+}

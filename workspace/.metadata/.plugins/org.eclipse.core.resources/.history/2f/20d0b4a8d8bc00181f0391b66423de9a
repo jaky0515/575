@@ -1,0 +1,40 @@
+/*
+ * NominalAttribute.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class NominalAttribute extends Attribute {
+	
+	/**
+	 * Default constructor.
+	 */
+	public NominalAttribute() {
+
+	}
+	/**
+	 * Explicit constructor. Creates a nominal attribute with the specified name.
+	 * @param name - the name of this data set
+	 */
+	public NominalAttribute( String name ) {
+
+	}
+	public void addValue( String value ) {
+
+	}
+	public int size() {
+		return 0;
+	}
+	public String getValue( int index ) {
+		return null;
+	}
+	public int getIndex( String value ) throws Exception {
+		return 0;
+	}
+	public String toString() {
+		return null;
+	}
+	public boolean validValue( String value ) {
+		return false;
+	}
+
+}

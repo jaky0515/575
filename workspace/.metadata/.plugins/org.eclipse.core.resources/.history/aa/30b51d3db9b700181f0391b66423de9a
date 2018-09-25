@@ -1,0 +1,9 @@
+/*
+ * Example.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class Example extends ArrayList<Double>;
+
+  public Example();
+  public Example( int n );

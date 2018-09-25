@@ -1,0 +1,21 @@
+/*
+ * Attributes.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class Attributes;
+
+  private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+  private boolean hasNumericAttributes = false;
+  private int classIndex;
+
+  public void add( Attribute attribute );
+  public int getClassIndex();
+  public boolean getHasNumericAttributes();
+  public Attribute get( int i );
+  public Attribute getClassAttribute();
+  public int getIndex( String name ) throws Exception;
+  public int size();
+  public void parse( Scanner scanner ) throws Exception;
+  public void setClassIndex( int classIndex ) throws Exception;
+  public String toString();

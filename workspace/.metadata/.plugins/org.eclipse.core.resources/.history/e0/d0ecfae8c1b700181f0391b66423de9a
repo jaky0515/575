@@ -1,0 +1,75 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+/*
+ * Attributes.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class Attributes {
+
+	private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+	private boolean hasNumericAttributes = false;
+	private int classIndex;
+
+	/*
+	 * Default constructor.
+	 */
+	public Attributes() {}
+	/**
+	 * Adds a new attribute to this set of attributes.
+	 * @param attribute
+	 */
+	public void add( Attribute attribute ) {
+		this.attributes.add(attribute);
+	}
+	public int getClassIndex() {
+		return this.classIndex;
+	}
+	public boolean getHasNumericAttributes() {
+		return this.getHasNumericAttributes();
+	}
+	/**
+	 * Returns the ith attribute in this set of attributes.
+	 * @param i
+	 * @return
+	 */
+	public Attribute get( int i ) {
+		return attributes.get(i);
+	}
+	/**
+	 * Returns the class attribute.
+	 * @return
+	 */
+	public Attribute getClassAttribute() {
+		return null;
+	}
+	/**
+	 * Returns the attribute's index.
+	 * @param name - the attribute's name
+	 * @return - the attribute's position in the names array
+	 * @throws Exception - if the attribute does not exist
+	 */
+	public int getIndex( String name ) throws Exception {
+		for(int i = 0; i < this.attributes.size(); i++) {
+			if(this.attributes.get(i).name.equals(name)) {
+				return i;
+			}
+		}
+		
+		throw new Exception('')
+	}
+	public int size() {
+
+	}
+	public void parse( Scanner scanner ) throws Exception {
+
+	}
+	public void setClassIndex( int classIndex ) throws Exception {
+
+	}
+	public String toString() {
+		return null;
+	}
+
+}

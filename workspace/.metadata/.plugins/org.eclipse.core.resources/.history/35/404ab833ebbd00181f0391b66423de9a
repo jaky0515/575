@@ -1,0 +1,70 @@
+import java.util.Arrays;
+
+/*
+ * TrainTestSets.java
+ * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
+ */
+
+public class TrainTestSets implements OptionHandler{
+
+	protected DataSet train;	// the training examples
+	protected DataSet test;	// the testing examples
+
+	/**
+	 * Default constructor
+	 */
+	public TrainTestSets() {}
+	/**
+	 * Explicit constructor that processes the specified arguments.
+	 * @param options
+	 * @throws Exception
+	 */
+	public TrainTestSets( String [] options ) throws Exception {
+		setOptions(options);
+	}
+	/**
+	 * Explicit constructor that sets the training and testing sets to the specified data sets
+	 * @param train
+	 * @param test
+	 */
+	public TrainTestSets( DataSet train, DataSet test ) {
+		this.train = train;
+		this.test = test;
+	}
+	public DataSet getTrainingSet() {
+		return this.train;
+	}
+	public DataSet getTestingSet() {
+		return this.test;
+	}
+	public void setTrainingSet( DataSet train ) {
+		this.train = train;
+	}
+	public void setTestingSet( DataSet test ) {
+		this.test = test;
+	}
+	/**
+	 * Sets the options for this train/test set.
+	 * @param options
+	 * @throws Exception
+	 */
+	public void setOptions( String[] options ) throws Exception {
+		// argument validation
+		if( options.length < 2 || 
+				!Arrays.asList(options).contains("-t") || 
+				(Arrays.asList(options).contains("-T") && options.length != 4) ) {
+			throw new Exception("Invalid arguments passed!");
+		}
+
+		// load data
+		this.train = new DataSet();
+		this.train.load(options[1].trim());
+		if(options.length == 4) {
+			this.test = new DataSet();
+			this.test.load(options[3].trim());
+		}
+	}
+	public String toString() {
+		return null;
+	}
+}
