@@ -16,3 +16,5 @@ workspace/p1/*.mff
 \.DS_Store
 
 workspace/p1/HONOR
+
+*.mff
