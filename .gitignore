@@ -7,7 +7,7 @@ workspace/\.DS_Store
 
 workspace/p1/\.DS_Store
 
-*.mff
+workspace/p1/*.mff
 
 *.class
 
