@@ -88,9 +88,7 @@ public class DataSet {
 			e.printStackTrace();
 		}
 		finally {
-			if(scanner != null) {
-				scanner.close();
-			}
+			scanner.close();
 		}
 	}
 	
@@ -148,9 +146,7 @@ public class DataSet {
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
 		// append @dataset section
-		if(this.name != null) {
-			strBuilder.append("@dataset ").append(this.name).append("\n\n");
-		}
+		strBuilder.append("@dataset ").append(this.name).append("\n\n");
 		// append @attribute section
 		strBuilder.append(this.attributes);
 		// append @examples section

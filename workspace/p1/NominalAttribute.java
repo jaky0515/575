@@ -26,9 +26,7 @@ public class NominalAttribute extends Attribute {
 	 * @param value - the attribute's new domain value
 	 */
 	public void addValue( String value ) {
-		if(this.validValue(value)) {
-			this.domain.add(value);
-		}
+		this.domain.add(value);
 	}
 	/**
 	 * Gets the size of this nominal attribute's domain.
@@ -52,7 +50,7 @@ public class NominalAttribute extends Attribute {
 	 * @throws Exception - if the value is not in the domain
 	 */
 	public int getIndex( String value ) throws Exception {
-		if(this.validValue(value) && this.domain.contains(value)) {
+		if(this.validValue(value)) {
 			return this.domain.indexOf(value);
 		}
 		throw new Exception("Invalid value passed-in!");
@@ -74,8 +72,10 @@ public class NominalAttribute extends Attribute {
 	 * @return true if the value is valid; false otherwise
 	 */
 	public boolean validValue( String value ) {
-		// test if value is null or empty String or in String type
-		return (value != null && !value.isEmpty() && value instanceof String);
+		if(value == null || value.isEmpty() || !(value instanceof String) || !(this.domain.contains(value))) {
+			return false;
+		}
+		return true;
 	}
 
 }

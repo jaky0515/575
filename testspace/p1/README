@@ -1,0 +1,18 @@
+COSC-575 Starter Files for p1
+
+This archive contains source files with method stubs and various data
+files in Mark's file format.
+
+You can use any platform for development, but your project must compile
+on cs-class using the command from within this directory:
+
+$ java *.java
+
+When you're ready to upload to Autolab, create the zip file for submission
+by typing:
+
+$ zip submit.zip *.java HONOR
+
+You can submit to Autolab four times.  You can perform two compile checks,
+and you can perform two project submissions that will be automatically
+graded.

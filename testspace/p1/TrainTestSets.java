@@ -71,20 +71,14 @@ public class TrainTestSets implements OptionHandler{
 				(Arrays.asList(options).contains("-T") && options.length != 4) ) {
 			throw new Exception("Invalid arguments passed!");
 		}
-		try {
-			// load data
-			this.train = new DataSet();
-			// load training data
-			this.train.load(options[1].trim());
-			if(options.length == 4) {
-				this.test = new DataSet();
-				// load testing data
-				this.test.load(options[3].trim());
-			}
-		}
-		catch(Exception e) {
-			System.err.println("Error occurred while loading a dataset!");
-			e.printStackTrace();
+		// load data
+		this.train = new DataSet();
+		// load training data
+		this.train.load(options[1].trim());
+		if(options.length == 4) {
+			this.test = new DataSet();
+			// load testing data
+			this.test.load(options[3].trim());
 		}
 	}
 	/**
@@ -92,8 +86,10 @@ public class TrainTestSets implements OptionHandler{
 	 */
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
-		strBuilder.append((this.train == null) ? "" : this.train);
-		strBuilder.append((this.test == null) ? "" : this.test);
+		strBuilder.append("@trainset\n\n").append(this.train);
+		if(this.test != null) {
+			strBuilder.append("\n\n@testset\n\n").append(this.test);
+		}
 		return strBuilder.toString();
 	}
 }
