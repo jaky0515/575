@@ -18,3 +18,7 @@ workspace/p1/*.mff
 workspace/p1/HONOR
 
 *.mff
+
+workspace/p2/\.classpath
+
+workspace/p2/\.project
