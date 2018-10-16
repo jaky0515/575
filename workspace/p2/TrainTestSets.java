@@ -13,14 +13,19 @@ public class TrainTestSets implements OptionHandler{
 	/**
 	 * Default constructor
 	 */
-	public TrainTestSets() {}
+	public TrainTestSets() {
+		this.train = new DataSet();	// set train
+		this.test = new DataSet();	// set test
+	}
 	/**
 	 * Explicit constructor that processes the specified arguments.
 	 * @param options - the arguments for this train/test set
 	 * @throws Exception - if the file is not found or if a parsing exception occurs
 	 */
 	public TrainTestSets( String [] options ) throws Exception {
-		setOptions(options);
+		this.train = new DataSet();	// set train
+		this.test = new DataSet();	// set test
+		this.setOptions(options);
 	}
 	/**
 	 * Explicit constructor that sets the training and testing sets to the specified data sets
@@ -68,7 +73,7 @@ public class TrainTestSets implements OptionHandler{
 		// argument validation
 		if( options.length < 2 || 
 				!Arrays.asList(options).contains("-t") || 
-				(Arrays.asList(options).contains("-T") && options.length != 4) ) {
+				(Arrays.asList(options).contains("-T") && options.length <= 2) ) {
 			throw new Exception("Invalid arguments passed!");
 		}
 		try {

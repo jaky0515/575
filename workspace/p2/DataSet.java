@@ -158,8 +158,31 @@ public class DataSet {
 		return strBuilder.toString();
 	}
 	public TrainTestSets getCVSets( int p ) throws Exception {
-		// update later
-		return null;
+		// validation
+		if( this.examples == null || this.examples.isEmpty() || this.partitions == null || this.partitions.length == 0 || this.folds <= p ) {
+			throw new Exception("Error: invalid Examples or partitions or p value detected!");
+		}
+		
+		// copy attributes
+		DataSet trainSet = new DataSet( this.attributes );
+		DataSet testSet = new DataSet( this.attributes );
+		// copy folds
+		trainSet.setFolds( this.folds );
+		testSet.setFolds( this.folds );
+
+		for (int i = 0; i < this.examples.size(); i++) {
+			if ( this.partitions[i] == p ) {
+				testSet.add( this.examples.get(i) );
+			} 
+			else {
+				trainSet.add( this.examples.get(i) );
+			}
+		}
+		// create cvSets and update values
+		TrainTestSets cvSets = new TrainTestSets();
+		cvSets.setTestingSet(testSet);
+		cvSets.setTrainingSet(trainSet);
+		return cvSets;
 	}
 	public int getFolds() {
 		return this.folds;

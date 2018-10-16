@@ -11,7 +11,7 @@ public abstract class Estimator extends Object {
 	}
 	abstract public void add( Number x ) throws Exception;
 	public Integer getN() {
-		return n;
+		return this.n;
 	}
 	abstract public Double getProbability( Number x );
 }

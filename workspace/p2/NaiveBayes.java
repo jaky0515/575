@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /*
  * NaiveBayes.java
@@ -25,18 +26,28 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		// update later
 		return -1;
 	}
-	public Classifier clone() {
-		// update later
-		return null;
-	}
 	public double[] getDistribution( Example example ) throws Exception {
 		// update later
 		return null;
 	}
-	public void setOptions( String[] options ) {
-		// update later
+	public Classifier clone() {
+		return (NaiveBayes) Utils.deepClone(this);
 	}
 	public void train( DataSet dataset ) throws Exception {
 		// update later
 	}
+	public void setOptions( String[] options ) {
+		// update later
+	}
+	public static void main( String[] args ) {
+		try {
+			Evaluator evaluator = new Evaluator( new NaiveBayes(), args );
+			Performance performance = evaluator.evaluate();
+			System.out.println( performance );
+		} // try
+		catch ( Exception e ) {
+			System.out.println( e.getMessage() );
+			e.printStackTrace();
+		} // catch
+	} // NaiveBayes::main
 }
