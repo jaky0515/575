@@ -43,7 +43,9 @@ public class Evaluator implements OptionHandler {
 			for(int i = 0; i < this.folds; i++) {
 				// cross-validate each bin
 				TrainTestSets cvSets = trainSet.getCVSets( i );
+				// train with current train data-set
 				this.classifier.train( cvSets.getTrainingSet() );
+				// add current performance (tested with the current test data-set)
 				perform.add( this.classifier.classify( cvSets.getTestingSet() ) );
 			}
 		}

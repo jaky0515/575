@@ -19,11 +19,13 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		this.setOptions( options );	// set options
 	}
 	public Performance classify( DataSet dataset ) throws Exception {
-		Performance perform = new Performance( this.dataset.getAttributes() );
-		Examples exs = this.dataset.getExamples();
-		for(int i = 0; i < exs.size(); i++) {
-			//			perform.add( exs.get(i).get( this.dataset.getAttributes().getClassIndex() ), this.classify( exs.get(i) ) );
-			perform.add( exs.get(i).get( this.dataset.getAttributes().getClassIndex() ).intValue(), this.getDistribution( exs.get(i) ) );
+		Performance perform = new Performance( dataset.getAttributes() );
+		Examples exs = dataset.getExamples();
+		if( exs != null ) {
+			for(int i = 0; i < exs.size(); i++) {
+//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
+				perform.add( exs.get(i).get( dataset.getAttributes().getClassIndex() ).intValue(), this.getDistribution( exs.get(i) ) );
+			}
 		}
 		return perform;
 	}
@@ -34,76 +36,52 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		return Utils.maxIndex( this.getDistribution( query ) );
 	}
 	public double[] getDistribution( Example query ) throws Exception {
-		// gives class rating
-		// parameter validation
-		if( query == null || query.isEmpty() ) {
-			throw new Exception("Error: invalid Example object passed-in!");
+		// create distances and indices arrays with size = k
+		double[] distances = new double[ this.k ];
+		int[] indices = new int[ this.k ];
+		// initialize values
+		for(int i = 0; i < this.k; i++) {
+			distances[ i ] = Double.MAX_VALUE;
 		}
-		NominalAttribute classAttribute = (NominalAttribute) this.dataset.attributes.getClassAttribute();
-		// initialize distributions
-		double[] distribution = new double[ classAttribute.size() ];
-		for (int i = 0; i < classAttribute.size(); i++) {
-			distribution[i] = 0.0;
-		}
-
-		DataSet scaledDs = scaler.scale(dataset);
-
-		double[] dists = new double[this.k];
-		int[] indices = new int[this.k];
-		double[] knn = new double[this.k];
-
-		for (int i = 0; i < this.k; i++) {
-			dists[i] = Double.MAX_VALUE;
-			indices[i] = 0;
-			knn[i] = 0.0;
-		}
-
-		for (int i = 0; i < scaledDs.getExamples().size(); i++) {
-			double distance = this.calculateDistance(this.scaler.scale(query), scaledDs.getExamples().get(i));
-
-			int maxIdx = Utils.maxIndex(dists);
-			if (distance <= dists[maxIdx]) {
-				dists[maxIdx] = distance;
-				indices[maxIdx] = i;
-			}
-		}
-
-		for (int i = 0; i < this.k; i++) {
-			knn[i] = (double) this.dataset.getExamples().get(indices[i])
-					.get(this.dataset.getAttributes().getClassIndex());
-		}
-
-		for (int i = 0; i < k; i++) {
-			distribution[(int) knn[i]] += 1;
-		}
-
-		for (int i = 0; i < distribution.length; i++) {
-			distribution[i] = distribution[i] / (double) k;
-		}
-
-		return distribution;
-	}
-	public double calculateDistance(Example train, Example test) {
-		double distance = 0.0;
-
-		for (int i = 0; i < this.dataset.getAttributes().size() - 1; i++) {
-
-			if (this.dataset.getAttributes().get(i) instanceof NumericAttribute) {
-				distance += Math.pow(train.get(i) - test.get(i), 2);
-			} else {
-				if (train.get(i).equals(test.get(i))) {
-					distance += 0;
-				} else {
-					distance += 1;
+		
+		DataSet scaledDs = this.scaler.scale( this.dataset );
+		Example scaledQ = this.scaler.scale( query );
+		for(int i = 0; i < scaledDs.getExamples().size(); i++) {
+			Example example = scaledDs.getExamples().get(i);
+			// calculate distance between this example and query
+			double totalDist = 0;
+			for(int j = 0; j < scaledDs.getAttributes().size()-1; j++) {
+				if( scaledDs.getAttributes().get(j) instanceof NumericAttribute ) {
+					// calculate using distance equation
+					totalDist += Math.pow( scaledQ.get(j), example.get(j) );
+				}
+				else {
+					// nominal attributes; 0 or 1
+					totalDist += ( scaledQ.get(j).equals( example.get(j) ) ) ? 0 : 1;
 				}
 			}
-
-			// distance += Math.pow(train.get(i) - test.get(i), 2);
+			double distance = Math.sqrt(totalDist);
+			// get index of max value in distances
+			int maxIdx = Utils.maxIndex( distances );
+			// if current distance is smaller update the value
+			if( distance < distances[ maxIdx ] ) {
+				distances[ maxIdx ] = distance;	// update distance value
+				indices[ maxIdx ] = i;			// update index
+			}
 		}
-
-		distance = Math.sqrt(distance);
-
-		return distance;
+		
+		double[] distributions = new double[ scaledDs.getAttributes().getClassAttribute().size() ];
+		for(int i = 0; i < indices.length; i++) {
+			// get the index of a class that this nearest neighbor belongs to
+			int idx = scaledDs.getExamples().get( indices[i] ).get( scaledDs.getAttributes().getClassIndex() ).intValue();
+			distributions[ idx ]++;
+		}
+		// scale distributions
+		for(int i = 0; i < distributions.length; i++) {
+			distributions[ i ]  = distributions[ i ] / (double) this.k;
+		}
+		
+		return distributions;
 	}
 	public void setOptions( String args[] ) {
 		// search for '-k' and if it exists, update the value of k
@@ -114,6 +92,7 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 	public void train( DataSet dataset ) throws Exception {
 		this.dataset = dataset;
 		this.scaler.configure( dataset );
+		// update later
 	}
 	public Classifier clone() {
 		return (IBk) Utils.deepClone(this);

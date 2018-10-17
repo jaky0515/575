@@ -8,53 +8,43 @@ public class Performance extends Object {
 	private Attributes attributes;
 	private int[][] confusionMatrix;
 	private int corrects = 0;
-	private double sum = 0.0;
-	private double sumSqr = 0.0;
-	private int c;                // number of classes
-	private int n = 0;            // number of predictions
-	private int m = 0;            // number of additions (number of performances added to the current Performance object)
+	private double sum = 0.0;		// sum of the accuracy
+	private double sumSqr = 0.0;	// sum of the squares of the accuracies
+	private int c = 0;				// number of classes
+	private int n = 0;				// number of predictions
+	private int m = 0;				// number of additions (number of performances added to the current Performance object)
 
 	public Performance( Attributes attributes ) throws Exception {
 		if( attributes == null || attributes.size() == 0 ) {
 			throw new Exception("Error: invalid attributes provided!");
 		}
-		this.attributes = attributes;
-		if (this.attributes.get(this.attributes.getClassIndex()) instanceof NominalAttribute) {
-			this.c = ((NominalAttribute) this.attributes.get(this.attributes.getClassIndex())).size();
+		this.attributes = attributes;	// set attributes
+		if( this.attributes.get( this.attributes.getClassIndex() ) instanceof NominalAttribute ) {
+			// if the class attribute is a NominalAttribute, update number of classes (c)
+			this.c = ( (NominalAttribute) this.attributes.get( this.attributes.getClassIndex() ) ).size();
 		}
-		// initialize confusionMatrix
-		this.confusionMatrix = new int[c][c];
-		for (int i = 0; i < this.c; i++) {
-			for (int j = 0; j < this.c; j++) {
-				this.confusionMatrix[i][j] = 0;
-			}
-		}
+		this.confusionMatrix = new int[ this.c ][ this.c ];	// set confusion matrix
 	}
 	public void add( int actual, double[] pr ) {
-		// update later
-		// pr = output from getDistribution()
 		// increment values
 		this.n++;
-		for(int i = 0; i < pr.length; i++) {
-			this.confusionMatrix[ actual ][ i ]++;
-			if(actual == this.confusionMatrix[ actual ][ i ]) {
-				this.corrects++;
-			}
-			this.confusionMatrix[ actual ][ i ]++;
-		}
+		// get the best prediction out of pr[]
+		int predicted = Utils.maxIndex( pr );
+		this.confusionMatrix[ actual ][ predicted ]++;
+		this.corrects += ( actual == predicted ) ? 1 : 0;
 	}
 	public void add( Performance p ) throws Exception {
 		// parameter validation
 		if( p == null ) {
 			throw new Exception("Error: invalid Performance object passed-in!");
 		}
-		// increment values
-		this.m++;
-		this.n += p.n;
-		this.corrects += p.corrects;
+		// add values
 		double accuracy = p.getAccuracy();
 		this.sum += accuracy;
 		this.sumSqr += Math.pow( accuracy, 2 );
+		this.m++;
+		this.n += p.n;
+		this.corrects += p.corrects;
 		for(int i = 0; i < this.confusionMatrix.length; i++) {
 			for(int j = 0; j < this.confusionMatrix[i].length; j++) {
 				this.confusionMatrix[i][j] += p.confusionMatrix[i][j];
@@ -62,25 +52,15 @@ public class Performance extends Object {
 		}
 	}
 	public double getAccuracy() {
-		if( this.n == 0 ) {
-			return 0;
-		}
-		else {
-			return (double)this.corrects / (double)this.n;
-		}
+		return ( this.n == 0) ? 0 : ( ( (double)this.corrects ) / ( (double)this.n ) );
 	}
 	public double getSDAcc() {
-		if( this.m == 0 ) {
-			return 0;
-		}
-		else {
-			return  (this.sumSqr - ( Math.pow(this.sum, 2) / (double)this.m ) ) / (double)( this.m - 1 );
-		}
+		return ( this.m == 0 ) ? 0 : ( (this.sumSqr - ( Math.pow(this.sum, 2) / (double)this.m ) ) / ( (double)( this.m - 1 ) ) );
 	}
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
-		strBuilder.append("Performance:\n\t** Accuracy = ").append(this.getAccuracy());
-		strBuilder.append("\n\t** SDAcc = ").append(this.getSDAcc());
+		strBuilder.append("Performance:\n\t** Accuracy = ").append( Math.round( this.getAccuracy() * 100.00 ) ).append( "%" );
+		strBuilder.append("\n\t** SDAcc = ").append( this.getSDAcc() );
 		return strBuilder.toString();
 	}
 }

@@ -163,15 +163,15 @@ public class DataSet {
 			throw new Exception("Error: invalid Examples or partitions or p value detected!");
 		}
 		
-		// copy attributes
+		// create data-sets and update values
 		DataSet trainSet = new DataSet( this.attributes );
 		DataSet testSet = new DataSet( this.attributes );
-		// copy folds
 		trainSet.setFolds( this.folds );
 		testSet.setFolds( this.folds );
-
+		// fill test and train data-sets
 		for (int i = 0; i < this.examples.size(); i++) {
 			if ( this.partitions[i] == p ) {
+				// add this example to a test data-set
 				testSet.add( this.examples.get(i) );
 			} 
 			else {
@@ -180,8 +180,8 @@ public class DataSet {
 		}
 		// create cvSets and update values
 		TrainTestSets cvSets = new TrainTestSets();
-		cvSets.setTestingSet(testSet);
-		cvSets.setTrainingSet(trainSet);
+		cvSets.setTestingSet( testSet );
+		cvSets.setTrainingSet( trainSet );
 		return cvSets;
 	}
 	public int getFolds() {
