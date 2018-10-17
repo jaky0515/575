@@ -12,11 +12,22 @@ public class Scaler extends Object implements Serializable {
 	private ArrayList<Double> mins;
 	private ArrayList<Double> maxs;
 
+	/**
+	 * Default constructor
+	 */
 	public Scaler() {
 		this.mins = new ArrayList<Double>();	// set mins
 		this.maxs = new ArrayList<Double>();	// set maxs
 	}
+	/**
+	 * Configures this class by setting mins and maxs
+	 * @param ds
+	 * @throws Exception
+	 */
 	public void configure( DataSet ds ) throws Exception {
+		if( ds.attributes == null || ds.attributes.size() == 0 || ds.getExamples() == null || ds.getExamples().isEmpty() ) {
+			throw new Exception("Error: invalid DataSet object passed-in!");
+		}
 		// used only for training
 		this.attributes = ds.getAttributes();
 		// initialize mins and maxs
@@ -47,7 +58,16 @@ public class Scaler extends Object implements Serializable {
 			}
 		}
 	}
+	/**
+	 * Scales a given data-set and return it
+	 * @param ds
+	 * @return scaled data-set
+	 * @throws Exception
+	 */
 	public DataSet scale( DataSet ds ) throws Exception {
+		if( ds.getExamples() == null || ds.getExamples().isEmpty() ) {
+			throw new Exception("Error: invalid DataSet object passed-in!");
+		}
 		// scale numeric values in the examples
 		for(int i = 0; i < ds.getExamples().size(); i++) {
 			Example scaledEx = this.scale( ds.getExamples().get(i) );
@@ -55,7 +75,16 @@ public class Scaler extends Object implements Serializable {
 		}
 		return ds;
 	}
+	/**
+	 * Scales a given example and returns it
+	 * @param example
+	 * @return scaled example
+	 * @throws Exception
+	 */
 	public Example scale( Example example ) throws Exception {
+		if( example == null || example.isEmpty() ) {
+			throw new Exception("Error: invalid Example object passed-in!");
+		}
 		for(int i = 0; i < this.attributes.size(); i++) {
 			if( this.attributes.get(i) instanceof NumericAttribute ) {
 				// scale and replace the value for numeric attribute values

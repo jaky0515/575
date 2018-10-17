@@ -11,13 +11,29 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 	protected Scaler scaler;
 	protected int k = 3;
 
+	/**
+	 * Default constructor
+	 */
 	public IBk() {
 		this.scaler = new Scaler();	// set scaler
 	}
+	/**
+	 * Constructor
+	 * @param options - string arguments
+	 * @throws Exception
+	 */
 	public IBk( String[] options ) throws Exception {
+		if( options == null || options.length < 2 ) {
+			throw new Exception("Error: invalid options passed-in!");
+		}
 		this.scaler = new Scaler();	// set scaler
 		this.setOptions( options );	// set options
 	}
+	/**
+	 * Classifies a given data-set and return its performance
+	 * @param dataset
+	 * @return performance
+	 */
 	public Performance classify( DataSet dataset ) throws Exception {
 		Performance perform = new Performance( dataset.getAttributes() );
 		Examples exs = dataset.getExamples();
@@ -31,12 +47,22 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		}
 		return perform;
 	}
+	/**
+	 * Classifies a given example query and return the predicted label
+	 * @param query
+	 * @return predicted label
+	 */
 	public int classify( Example query ) throws Exception {
 		if( query == null || query.isEmpty() ) {
 			throw new Exception("Error: invalid Example object passed-in!");
 		}
 		return Utils.maxIndex( this.getDistribution( query ) );
 	}
+	/**
+	 * Compute the distribution by comparing a given query with other examples
+	 * @param query
+	 * @return double[] - distribution
+	 */
 	public double[] getDistribution( Example query ) throws Exception {
 		if( query == null || query.isEmpty() ) {
 			throw new Exception("Error: invalid Example object passed-in!");
@@ -85,12 +111,20 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		}
 		return distributions;
 	}
+	/**
+	 * Sets the options for this classifier
+	 * @param options - the arguments
+	 */
 	public void setOptions( String args[] ) {
 		// search for '-k' and if it exists, update the value of k
 		if( Arrays.asList(args).contains("-k") ) {
 			this.setK( Integer.parseInt( args[Arrays.asList(args).indexOf("-k") + 1] ) );
 		}
 	}
+	/**
+	 * Train using a given data-set
+	 * @param dataset
+	 */
 	public void train( DataSet dataset ) throws Exception {
 		this.scaler.configure( dataset );
 		if( dataset.getHasNumericAttributes() ) {
@@ -101,12 +135,24 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 			this.dataset = dataset;
 		}
 	}
+	/**
+	 * Makes a deep copy of this class
+	 * @return Classifier
+	 */
 	public Classifier clone() {
 		return (IBk) Utils.deepClone(this);
 	}
+	/**
+	 * Replace current k with new value
+	 * @param k
+	 */
 	public void setK( int k ) {
 		this.k = k;
 	}
+	/**
+	 * Main method
+	 * @param args
+	 */
 	public static void main( String[] args ) {
 		try {
 			Evaluator evaluator = new Evaluator( new IBk(), args );

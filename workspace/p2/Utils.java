@@ -9,7 +9,11 @@ import java.io.ObjectOutputStream;
  */
 
 public class Utils {
-
+	/**
+	 * Returns an index of a maximum value
+	 * @param p
+	 * @return index of a maximum value
+	 */
 	public static int maxIndex( double[] p ) {
 		int maxIdx = 0;
 		double maxVal = p[0];
@@ -22,7 +26,6 @@ public class Utils {
 		}
 		return maxIdx;
 	}
-
 	/**
 	 * This method makes a "deep clone" of any object it is given.
 	 * Copied from: https://alvinalexander.com/java/java-deep-clone-example-source-code

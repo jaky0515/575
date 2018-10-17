@@ -8,15 +8,26 @@ public class GaussianEstimator extends Estimator {
 	protected Double sumsqr = 0.0;
 	protected final static Double oneOverSqrt2PI = 1.0/Math.sqrt(2.0*Math.PI);
 
+	/**
+	 * Default constructor
+	 */
 	public GaussianEstimator() {
 		
 	}
+	/**
+	 * Increment values
+	 * @param x
+	 */
 	public void add( Number x ) throws Exception {
 		// increment values
 		this.n++;
 		this.sum += x.doubleValue();
 		this.sumsqr += Math.pow(x.doubleValue(), 2);
 	}
+	/**
+	 * Compute and return mean
+	 * @return mean
+	 */
 	public Double getMean() {
 		double mean = 0;
 		if( this.n > 0 ) {
@@ -25,6 +36,10 @@ public class GaussianEstimator extends Estimator {
 		}
 		return mean;
 	}
+	/**
+	 * Compute and return variance
+	 * @return variance
+	 */
 	public Double getVariance() {
         double variance = 0;
         if( this.n > 0 ) {
@@ -33,6 +48,11 @@ public class GaussianEstimator extends Estimator {
         }
         return variance;
 	}
+	/**
+	 * Compute and return probability
+	 * @param x
+	 * @return probability
+	 */
 	public Double getProbability( Number x ) {
 		double prob = 0;
 		if( this.n > 0 ) {

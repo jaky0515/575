@@ -4,9 +4,17 @@
  */
 
 public abstract class Classifier extends Object implements OptionHandler {
+	/**
+	 * Default constructor
+	 */
 	public Classifier() {
 
 	}
+	/**
+	 * Constructor
+	 * @param options - the arguments
+	 * @throws Exception
+	 */
 	public Classifier( String[] options ) throws Exception {
 		this.setOptions(options);
 	}
@@ -17,6 +25,10 @@ public abstract class Classifier extends Object implements OptionHandler {
 	abstract public void train( DataSet dataset ) throws Exception;
 	public abstract Classifier clone();
 	
+	/**
+	 * Sets the options for this classifier
+	 * @param options - the arguments
+	 */
 	public void setOptions( String[] options ) {
 		if( this instanceof IBk) {
 			( (IBk) this ).setOptions( options );
@@ -25,6 +37,9 @@ public abstract class Classifier extends Object implements OptionHandler {
 			( (NaiveBayes) this ).setOptions( options );
 		}
 	}
+	/**
+	 * Returns a string representation of this classifier
+	 */
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
 		if( this instanceof IBk ) {

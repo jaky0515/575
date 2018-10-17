@@ -13,7 +13,11 @@ public class Performance extends Object {
 	private int c = 0;				// number of classes
 	private int n = 0;				// number of predictions
 	private int m = 0;				// number of additions (number of performances added to the current Performance object)
-
+	/**
+	 * Constructor
+	 * @param attributes
+	 * @throws Exception
+	 */
 	public Performance( Attributes attributes ) throws Exception {
 		if( attributes == null || attributes.size() == 0 ) {
 			throw new Exception("Error: invalid attributes provided!");
@@ -25,14 +29,25 @@ public class Performance extends Object {
 		}
 		this.confusionMatrix = new int[ this.c ][ this.c ];	// set confusion matrix
 	}
+	/**
+	 * Increment values
+	 * @param actual
+	 * @param pr
+	 */
 	public void add( int actual, double[] pr ) {
 		// increment values
 		this.n++;
 		// get the best prediction out of pr[]
 		int predicted = Utils.maxIndex( pr );
 		this.confusionMatrix[ actual ][ predicted ]++;
+		// increment correct if actual and predicted match
 		this.corrects += ( actual == predicted ) ? 1 : 0;
 	}
+	/**
+	 * Increment values using a given Performance object
+	 * @param p
+	 * @throws Exception
+	 */
 	public void add( Performance p ) throws Exception {
 		// parameter validation
 		if( p == null ) {
@@ -51,12 +66,23 @@ public class Performance extends Object {
 			}
 		}
 	}
+	/**
+	 * Compute and return accuracy
+	 * @return accuracy
+	 */
 	public double getAccuracy() {
 		return ( this.n == 0) ? 0 : ( ( (double)this.corrects ) / ( (double)this.n ) );
 	}
+	/**
+	 * Compute and return standard deviation
+	 * @return
+	 */
 	public double getSDAcc() {
 		return ( this.m == 0 ) ? 0 : ( (this.sumSqr - ( Math.pow(this.sum, 2) / (double)this.m ) ) / ( (double)( this.m - 1 ) ) );
 	}
+	/**
+	 * Returns a string representation of this class
+	 */
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();
 		strBuilder.append("Performance:\n\t** Accuracy = ").append( Math.round( this.getAccuracy() * 100.00 ) ).append( "%" );

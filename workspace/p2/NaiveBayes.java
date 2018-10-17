@@ -10,16 +10,32 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 	protected Attributes attributes;
 	protected CategoricalEstimator classDistribution;
 	protected ArrayList< ArrayList<Estimator> > classConditionalDistributions;
-
+	
+	/**
+	 * Default constructor
+	 */
 	public NaiveBayes() {
 		this.classDistribution = new CategoricalEstimator();	// set classDistribution
 		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();	// set classConditionalDistributions
 	}
+	/**
+	 * Constructor
+	 * @param options - string arguments
+	 * @throws Exception
+	 */
 	public NaiveBayes( String[] options ) throws Exception {
+		if( options == null || options.length < 2 ) {
+			throw new Exception("Error: invalid options passed-in!");
+		}
 		this.classDistribution = new CategoricalEstimator();	// set classDistribution
 		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();	// set classConditionalDistributions
 		this.setOptions( options );	// set options
 	}
+	/**
+	 * Classifies a given data-set and return its performance
+	 * @param dataset
+	 * @return performance
+	 */
 	public Performance classify( DataSet dataSet ) throws Exception {
 		Performance perform = new Performance( dataSet.getAttributes() );
 		Examples exs = dataSet.getExamples();
@@ -33,6 +49,11 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		}
 		return perform;
 	}
+	/**
+	 * Classifies a given example query and return the predicted label
+	 * @param query
+	 * @return predicted label
+	 */
 	public int classify( Example example ) throws Exception {
 		// parameter validation
 		if( example == null || example.isEmpty() ) {
@@ -40,6 +61,11 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		}
 		return Utils.maxIndex( this.getDistribution( example ) );
 	}
+	/**
+	 * Compute the distribution by comparing a given query with other examples
+	 * @param query
+	 * @return double[] - distribution
+	 */
 	public double[] getDistribution( Example example ) throws Exception {
 		// validation
 		if( example == null || example.isEmpty() ) {
@@ -60,9 +86,17 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		}
 		return dist;
 	}
+	/**
+	 * Makes a deep copy of this class
+	 * @return Classifier
+	 */
 	public Classifier clone() {
 		return (NaiveBayes) Utils.deepClone(this);
 	}
+	/**
+	 * Train using a given data-set
+	 * @param dataset
+	 */
 	public void train( DataSet dataset ) throws Exception {
 		// validation
 		if( dataset == null || dataset.getAttributes() == null || dataset.getAttributes().size() == 0 ||
@@ -80,7 +114,7 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 				} 
 				else {
 					// for nominal attribute; use Categorical Estimator
-					estimators.add( new CategoricalEstimator( ( (NominalAttribute) this.attributes.get(j) ).size() ) );
+					estimators.add( new CategoricalEstimator( ( (NominalAttribute)this.attributes.get(j) ).size() ) );
 				}
 			}
 			this.classConditionalDistributions.add( estimators );
@@ -97,9 +131,17 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 			}
 		}
 	}
+	/**
+	 * Sets the options for this classifier
+	 * @param options - the arguments
+	 */
 	public void setOptions( String[] options ) {
 		
 	}
+	/**
+	 * Main method
+	 * @param args
+	 */
 	public static void main( String[] args ) {
 		try {
 			Evaluator evaluator = new Evaluator( new NaiveBayes(), args );

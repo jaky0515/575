@@ -15,14 +15,28 @@ public class Evaluator implements OptionHandler {
 	private Classifier classifier;
 	private TrainTestSets tts;
 	
+	/**
+	 * Default constructor
+	 */
 	public Evaluator() {
 
 	}
+	/**
+	 * Constructor
+	 * @param classifier
+	 * @param options - string arguments
+	 * @throws Exception
+	 */
 	public Evaluator( Classifier classifier, String[] options ) throws Exception {
-		this.random = new Random(seed);
+		this.random = new Random( seed );
 		this.classifier = classifier;
 		this.setOptions( options );
 	}
+	/**
+	 * Evaluate a model and return the result
+	 * @return Performance - performance of a trained model tested with a given test set
+	 * @throws Exception
+	 */
 	public Performance evaluate() throws Exception {
 		Performance perform = null;
 		DataSet trainSet = this.tts.getTrainingSet();
@@ -30,14 +44,6 @@ public class Evaluator implements OptionHandler {
 		// check if the test data-set is provided
 		if( testSet.getAttributes() == null || testSet.getAttributes().size() == 0 ) {
 			// only train data-set is provided
-			// set partitions
-			trainSet.partitions = new int[ trainSet.getExamples().size() ];
-			trainSet.setRandom( this.random );	// use the same random with same seed as this Evaluator
-			for(int i = 0; i < trainSet.partitions.length; i++) {
-				// randomly partition each example
-				trainSet.partitions[i] = trainSet.random.nextInt( this.folds );
-			}
-			
 			perform = new Performance( trainSet.getAttributes() );
 			for(int i = 0; i < this.folds; i++) {
 				Classifier classifier = this.classifier.clone();
@@ -59,6 +65,10 @@ public class Evaluator implements OptionHandler {
 		}
 		return perform;
 	}
+	/**
+	 * Sets the options for this classifier
+	 * @param options - the arguments
+	 */
 	public void setOptions( String args[] ) throws Exception {
 		List<String> argsList = Arrays.asList( args );
 		this.tts = new TrainTestSets();
@@ -66,6 +76,9 @@ public class Evaluator implements OptionHandler {
 		if( argsList.contains( "-x" ) ) {
 			// if -x exists, update the number of folds
 			this.folds = Integer.parseInt( args[argsList.indexOf("-x") + 1] );
+			if( this.folds <= 0 ) {
+				throw new Exception("Error: invalid fold value detected!");
+			}
 			this.tts.getTrainingSet().setFolds( this.folds );
 			this.tts.getTestingSet().setFolds( this.folds );
 		}
@@ -74,11 +87,21 @@ public class Evaluator implements OptionHandler {
 			this.seed = Long.parseLong( args[argsList.indexOf("-s") + 1] );
 			this.random.setSeed( this.seed );
 		}
+		this.tts.getTrainingSet().setRandom( this.random );
+		this.tts.getTestingSet().setRandom( this.random );
 		this.classifier.setOptions( args );
 	}
+	/**
+	 * Returns seed
+	 * @return seed
+	 */
 	public long getSeed() {
 		return this.seed;
 	}
+	/**
+	 * Replace current seed with a new value
+	 * @param seed
+	 */
 	public void setSeed( long seed ) {
 		this.seed = seed;
 	}

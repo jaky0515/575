@@ -157,10 +157,25 @@ public class DataSet {
 		strBuilder.append(this.examples);
 		return strBuilder.toString();
 	}
+	/**
+	 * Returns train and test sets after performing cross validation
+	 * @param p - current test bin's index
+	 * @return TrainTestSets
+	 * @throws Exception
+	 */
 	public TrainTestSets getCVSets( int p ) throws Exception {
 		// validation
-		if( this.examples == null || this.examples.isEmpty() || this.partitions == null || this.partitions.length == 0 || this.folds <= p ) {
-			throw new Exception("Error: invalid Examples or partitions or p value detected!");
+		if( this.examples == null || this.examples.isEmpty() ) {
+			throw new Exception("Error: invalid Examples object detected!");
+		}
+		
+		// check if partition has been created
+		if( this.partitions == null || this.partitions.length == 0 ) {
+			this.partitions = new int[ this.getExamples().size() ];
+			for(int i = 0; i < this.partitions.length; i++) {
+				// randomly partition each example by assigning a value [0, this.folds)
+				this.partitions[i] = this.random.nextInt( this.folds );
+			}
 		}
 		
 		// create data-sets and update values
@@ -185,10 +200,22 @@ public class DataSet {
 		cvSets.setTrainingSet( trainSet );
 		return cvSets;
 	}
+	/**
+	 * Returns folds
+	 * @return folds
+	 */
 	public int getFolds() {
 		return this.folds;
 	}
+	/**
+	 * Replace folds with new value
+	 * @param folds
+	 * @throws Exception
+	 */
 	public void setFolds( int folds ) throws Exception {
+		if( folds <= 0 ) {
+			throw new Exception("Error: invalid folds passed-in!");
+		}
 		this.folds = folds;
 	}
 }
