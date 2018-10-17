@@ -40,12 +40,13 @@ public class Evaluator implements OptionHandler {
 			
 			perform = new Performance( trainSet.getAttributes() );
 			for(int i = 0; i < this.folds; i++) {
+				Classifier classifier = this.classifier.clone();
 				// cross-validate each bin
 				TrainTestSets cvSets = trainSet.getCVSets( i );
 				// train with current train data-set
-				this.classifier.train( cvSets.getTrainingSet() );
+				classifier.train( cvSets.getTrainingSet() );
 				// add current performance (tested with the current test data-set)
-				perform.add( this.classifier.classify( cvSets.getTestingSet() ) );
+				perform.add( classifier.classify( cvSets.getTestingSet() ) );
 			}
 		}
 		else {

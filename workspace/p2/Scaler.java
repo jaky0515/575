@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /*
@@ -5,7 +6,7 @@ import java.util.ArrayList;
  * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
  */
 
-public class Scaler extends Object {
+public class Scaler extends Object implements Serializable {
 
 	private Attributes attributes;
 	private ArrayList<Double> mins;
@@ -47,7 +48,6 @@ public class Scaler extends Object {
 		}
 	}
 	public DataSet scale( DataSet ds ) throws Exception {
-		this.configure( ds );
 		// scale numeric values in the examples
 		for(int i = 0; i < ds.getExamples().size(); i++) {
 			Example scaledEx = this.scale( ds.getExamples().get(i) );

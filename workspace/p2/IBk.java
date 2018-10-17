@@ -23,8 +23,9 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		Examples exs = dataset.getExamples();
 		if( exs != null ) {
 			for(int i = 0; i < exs.size(); i++) {
-//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
-				perform.add( exs.get(i).get( dataset.getAttributes().getClassIndex() ).intValue(), this.getDistribution( exs.get(i) ) );
+				//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
+				Example ex = exs.get(i);
+				perform.add( ex.get( dataset.getAttributes().getClassIndex() ).intValue(), this.getDistribution( ex ) );
 			}
 		}
 		return perform;
@@ -36,6 +37,10 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		return Utils.maxIndex( this.getDistribution( query ) );
 	}
 	public double[] getDistribution( Example query ) throws Exception {
+		if( query == null || query.isEmpty() ) {
+			throw new Exception("Error: invalid Example object passed-in!");
+		}
+		
 		// create distances and indices arrays with size = k
 		double[] distances = new double[ this.k ];
 		int[] indices = new int[ this.k ];
@@ -43,44 +48,41 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		for(int i = 0; i < this.k; i++) {
 			distances[ i ] = Double.MAX_VALUE;
 		}
-		
-		DataSet scaledDs = this.scaler.scale( this.dataset );
 		Example scaledQ = this.scaler.scale( query );
-		for(int i = 0; i < scaledDs.getExamples().size(); i++) {
-			Example example = scaledDs.getExamples().get(i);
+		for(int i = 0; i < this.dataset.getExamples().size(); i++) {
+			Example example = this.dataset.getExamples().get(i);
 			// calculate distance between this example and query
 			double totalDist = 0;
-			for(int j = 0; j < scaledDs.getAttributes().size()-1; j++) {
-				if( scaledDs.getAttributes().get(j) instanceof NumericAttribute ) {
+			for(int j = 0; j < this.dataset.getAttributes().size()-1; j++) {
+				if( this.dataset.getAttributes().get(j) instanceof NumericAttribute ) {
 					// calculate using distance equation
-					totalDist += Math.pow( scaledQ.get(j), example.get(j) );
+					totalDist += Math.pow( ( scaledQ.get(j) - example.get(j) ), 2 );
 				}
 				else {
 					// nominal attributes; 0 or 1
 					totalDist += ( scaledQ.get(j).equals( example.get(j) ) ) ? 0 : 1;
 				}
 			}
-			double distance = Math.sqrt(totalDist);
+			double distance = Math.sqrt( totalDist );
 			// get index of max value in distances
 			int maxIdx = Utils.maxIndex( distances );
 			// if current distance is smaller update the value
-			if( distance < distances[ maxIdx ] ) {
+			if( distance <= distances[ maxIdx ] ) {
 				distances[ maxIdx ] = distance;	// update distance value
 				indices[ maxIdx ] = i;			// update index
 			}
 		}
-		
-		double[] distributions = new double[ scaledDs.getAttributes().getClassAttribute().size() ];
+		double[] distributions = new double[ this.dataset.getAttributes().getClassAttribute().size() ];
 		for(int i = 0; i < indices.length; i++) {
 			// get the index of a class that this nearest neighbor belongs to
-			int idx = scaledDs.getExamples().get( indices[i] ).get( scaledDs.getAttributes().getClassIndex() ).intValue();
+			int idx = this.dataset.getExamples().get( indices[i] ).get( this.dataset.getAttributes().getClassIndex() ).intValue();
 			distributions[ idx ]++;
 		}
 		// scale distributions
 		for(int i = 0; i < distributions.length; i++) {
 			distributions[ i ]  = distributions[ i ] / (double) this.k;
 		}
-		
+
 		return distributions;
 	}
 	public void setOptions( String args[] ) {
@@ -90,8 +92,14 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		}
 	}
 	public void train( DataSet dataset ) throws Exception {
-		this.dataset = dataset;
 		this.scaler.configure( dataset );
+		if( dataset.getHasNumericAttributes() ) {
+			// scale this data-set only when numeric attributes exist
+			this.dataset = this.scaler.scale( dataset );
+		}
+		else {
+			this.dataset = dataset;
+		}
 	}
 	public Classifier clone() {
 		return (IBk) Utils.deepClone(this);

@@ -1,6 +1,5 @@
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
  * NaiveBayes.java
@@ -25,7 +24,8 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		if( exs != null ) {
 			for(int i = 0; i < exs.size(); i++) {
 				//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
-				perform.add( exs.get(i).get( dataSet.getAttributes().getClassIndex() ).intValue(), this.getDistribution( exs.get(i) ) );
+				Example ex = exs.get(i);
+				perform.add( ex.get( dataSet.getAttributes().getClassIndex() ).intValue(), this.getDistribution( ex ) );
 			}
 		}
 		return perform;
@@ -38,6 +38,10 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		return Utils.maxIndex( this.getDistribution( example ) );
 	}
 	public double[] getDistribution( Example example ) throws Exception {
+		// validation
+		if( example == null || example.isEmpty() ) {
+			throw new Exception("Error: invalid Example object passed-in!");
+		}
 		double[] dist = new double[ this.attributes.getClassAttribute().size() ];
 		double sum = 0;
 		for(int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
@@ -57,30 +61,36 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		return (NaiveBayes) Utils.deepClone(this);
 	}
 	public void train( DataSet dataset ) throws Exception {
-		this.attributes = dataset.getAttributes();
-		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );
-
-		for (int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
+		// validation
+		if( dataset == null || dataset.getAttributes() == null || dataset.getAttributes().size() == 0 ||
+				dataset.getExamples() == null || dataset.getExamples().isEmpty() ) {
+			throw new Exception("Error: invalid DataSet object passed-in!");
+		}
+		
+		// initialize classConditionalDistributions
+		this.attributes = dataset.getAttributes();	// set attributes
+		for(int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
 			ArrayList<Estimator> estimators = new ArrayList<Estimator>();
-			for (int j = 0; j < dataset.attributes.size() - 1; j++) {
-				if (dataset.attributes.get(j) instanceof NominalAttribute) {
-					NominalAttribute nominalAttr = (NominalAttribute) dataset.attributes.get(j);
-					estimators.add( new CategoricalEstimator( nominalAttr.size() ) );
+			for(int j = 0; j < dataset.attributes.size() - 1; j++) {
+				if( dataset.attributes.get(j) instanceof NominalAttribute ) {
+					// for nominal attribute; use Categorical Estimator
+					estimators.add( new CategoricalEstimator( ( (NominalAttribute) dataset.attributes.get(j) ).size() ) );
 				} 
 				else {
+					// for numeric attribute; use Gaussian Estimator
 					estimators.add( new GaussianEstimator() );
 				}
 			}
 			this.classConditionalDistributions.add(estimators);
 		}
 
-		// train
-		for (int i = 0; i < dataset.getExamples().size(); i++) {
-			this.classDistribution.add(dataset.getExamples().get(i).get(this.attributes.getClassIndex()));
-			for (int j = 0; j < this.attributes.size() - 1; j++) {
-				this.classConditionalDistributions
-						.get(dataset.getExamples().get(i).get(this.attributes.getClassIndex()).intValue()).get(j)
-						.add((dataset.getExamples().get(i).get(j)));
+		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );	// set classDistribution
+		for(int i = 0; i < dataset.getExamples().size(); i++) {
+			Example ex = dataset.getExamples().get(i);
+			Double exClass = ex.get( this.attributes.getClassIndex() );
+			this.classDistribution.add( exClass );
+			for(int j = 0; j < this.attributes.size() - 1; j++) {
+				this.classConditionalDistributions.get( exClass.intValue() ).get(j).add( ( ex.get(j) ) );
 			}
 		}
 	}

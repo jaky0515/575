@@ -15,10 +15,10 @@ public class GaussianEstimator extends Estimator {
 		// increment values
 		this.n++;
 		this.sum += x.doubleValue();
-		this.sumsqr += Math.pow(x.doubleValue(), 2);
+		this.sumsqr += Math.pow( x.doubleValue(), 2 );
 	}
 	public Double getMean() {
-		return this.sum / ( (double) this.getN() );
+		return ( this.sum / ( (double) this.getN() ) );
 	}
 	public Double getVariance() {
 		return ( this.sumsqr - ( Math.pow( this.sum, 2 ) / ( (double) this.getN() )) ) / ( (double) ( this.getN() - 1 ) );

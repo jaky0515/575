@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /*
@@ -5,7 +6,7 @@ import java.util.ArrayList;
  * Copyright (c) 2018 Georgetown University.  All Rights Reserved.
  */
 
-public class CategoricalEstimator extends Estimator {
+public class CategoricalEstimator extends Estimator implements Serializable {
 	protected ArrayList<Integer> dist;
 
 	public CategoricalEstimator() {

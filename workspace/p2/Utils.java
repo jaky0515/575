@@ -14,6 +14,7 @@ public class Utils {
 		int maxIdx = 0;
 		double maxVal = p[0];
 		for(int i = 1; i < p.length; i++) {
+			// if maxVal is smaller than the current value; replace
 			if( maxVal < p[i] ) {
 				maxVal = p[i];
 				maxIdx = i;
