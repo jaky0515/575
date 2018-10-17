@@ -15,16 +15,31 @@ public class GaussianEstimator extends Estimator {
 		// increment values
 		this.n++;
 		this.sum += x.doubleValue();
-		this.sumsqr += Math.pow( x.doubleValue(), 2 );
+		this.sumsqr += Math.pow(x.doubleValue(), 2);
 	}
 	public Double getMean() {
-		return ( this.sum / ( (double) this.getN() ) );
+		double mean = 0;
+		if( this.n > 0 ) {
+			// calculate only when number of samples is greater than 0
+			mean = this.sum / this.n;
+		}
+		return mean;
 	}
 	public Double getVariance() {
-		return ( this.sumsqr - ( Math.pow( this.sum, 2 ) / ( (double) this.getN() )) ) / ( (double) ( this.getN() - 1 ) );
+        double variance = 0;
+        if( this.n > 0 ) {
+        	// calculate only when number of samples is greater than 0
+        	variance = ( this.sumsqr - ( Math.pow(this.sum, 2) / this.n ) ) / ( this.n - 1 );
+        }
+        return variance;
 	}
 	public Double getProbability( Number x ) {
-		Double var = this.getVariance();
-		return oneOverSqrt2PI * ( 1.0 / Math.sqrt( var ) ) * Math.exp( (-1.0 * Math.pow( x.doubleValue() - this.getMean(), 2 ) ) / ( 2.0 * var ));
+		double prob = 0;
+		if( this.n > 0 ) {
+			// calculate only when number of samples is greater than 0
+			Double var = this.getVariance();
+			prob = oneOverSqrt2PI * ( 1 / Math.sqrt( var ) ) * Math.exp( (-1 * Math.pow( x.doubleValue() - this.getMean(), 2 ) ) / ( 2 * var ));
+		}
+		return prob;
 	}
 }

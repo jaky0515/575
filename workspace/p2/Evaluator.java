@@ -64,11 +64,13 @@ public class Evaluator implements OptionHandler {
 		this.tts = new TrainTestSets();
 		this.tts.setOptions( args );
 		if( argsList.contains( "-x" ) ) {
+			// if -x exists, update the number of folds
 			this.folds = Integer.parseInt( args[argsList.indexOf("-x") + 1] );
 			this.tts.getTrainingSet().setFolds( this.folds );
 			this.tts.getTestingSet().setFolds( this.folds );
 		}
 		if( argsList.contains( "-s" ) ) {
+			// if -s exists, update the seed value
 			this.seed = Long.parseLong( args[argsList.indexOf("-s") + 1] );
 			this.random.setSeed( this.seed );
 		}

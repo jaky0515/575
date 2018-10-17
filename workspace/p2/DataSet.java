@@ -165,16 +165,17 @@ public class DataSet {
 		
 		// create data-sets and update values
 		DataSet trainSet = new DataSet( this.attributes );
-		DataSet testSet = new DataSet( this.attributes );
 		trainSet.setFolds( this.folds );
+		DataSet testSet = new DataSet( this.attributes );
 		testSet.setFolds( this.folds );
 		// fill test and train data-sets
-		for (int i = 0; i < this.examples.size(); i++) {
-			if ( this.partitions[i] == p ) {
+		for(int i = 0; i < this.examples.size(); i++) {
+			if( this.partitions[i] == p ) {
 				// add this example to a test data-set
 				testSet.add( this.examples.get(i) );
 			} 
 			else {
+				// add this example to a train data-set
 				trainSet.add( this.examples.get(i) );
 			}
 		}

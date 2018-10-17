@@ -12,10 +12,12 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 	protected ArrayList< ArrayList<Estimator> > classConditionalDistributions;
 
 	public NaiveBayes() {
-		this.classDistribution = new CategoricalEstimator();
-		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();
+		this.classDistribution = new CategoricalEstimator();	// set classDistribution
+		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();	// set classConditionalDistributions
 	}
 	public NaiveBayes( String[] options ) throws Exception {
+		this.classDistribution = new CategoricalEstimator();	// set classDistribution
+		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();	// set classConditionalDistributions
 		this.setOptions( options );	// set options
 	}
 	public Performance classify( DataSet dataSet ) throws Exception {
@@ -23,9 +25,10 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		Examples exs = dataSet.getExamples();
 		if( exs != null ) {
 			for(int i = 0; i < exs.size(); i++) {
-				//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
+				// append this prediction result to the performance
 				Example ex = exs.get(i);
-				perform.add( ex.get( dataSet.getAttributes().getClassIndex() ).intValue(), this.getDistribution( ex ) );
+				int actualClass = ex.get( dataSet.getAttributes().getClassIndex() ).intValue();
+				perform.add( actualClass, this.getDistribution( ex ) );
 			}
 		}
 		return perform;
@@ -83,11 +86,11 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 			}
 			this.classConditionalDistributions.add(estimators);
 		}
-
-		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );	// set classDistribution
+		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );	// set CategoricalEstimator
 		for(int i = 0; i < dataset.getExamples().size(); i++) {
 			Example ex = dataset.getExamples().get(i);
 			Double exClass = ex.get( this.attributes.getClassIndex() );
+			// add 1 to every category
 			this.classDistribution.add( exClass );
 			for(int j = 0; j < this.attributes.size() - 1; j++) {
 				this.classConditionalDistributions.get( exClass.intValue() ).get(j).add( ( ex.get(j) ) );

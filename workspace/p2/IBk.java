@@ -23,9 +23,10 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		Examples exs = dataset.getExamples();
 		if( exs != null ) {
 			for(int i = 0; i < exs.size(); i++) {
-				//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
+				// append this prediction result to the performance
 				Example ex = exs.get(i);
-				perform.add( ex.get( dataset.getAttributes().getClassIndex() ).intValue(), this.getDistribution( ex ) );
+				int actualClass = ex.get( dataset.getAttributes().getClassIndex() ).intValue();
+				perform.add( actualClass, this.getDistribution( ex ) );
 			}
 		}
 		return perform;
@@ -82,7 +83,6 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 		for(int i = 0; i < distributions.length; i++) {
 			distributions[ i ]  = distributions[ i ] / (double) this.k;
 		}
-
 		return distributions;
 	}
 	public void setOptions( String args[] ) {
