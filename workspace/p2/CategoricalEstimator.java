@@ -22,8 +22,9 @@ public class CategoricalEstimator extends Estimator implements Serializable {
 	public void add( Number x ) throws Exception {
 		// increment values
 		this.n++;
-		// add 1 to category
-		this.dist.set( x.intValue(), this.dist.get( x.intValue() ) + 1 );
+		// add 1 to this class value
+		int newVal = this.dist.get( x.intValue() ) + 1;
+		this.dist.set( x.intValue(), newVal );
 	}
 	public Double getProbability( Number x ) {
 		double smoothed = this.dist.get( x.intValue() ) + 1; // add one smoothing

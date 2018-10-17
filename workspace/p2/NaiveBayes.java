@@ -69,31 +69,31 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 				dataset.getExamples() == null || dataset.getExamples().isEmpty() ) {
 			throw new Exception("Error: invalid DataSet object passed-in!");
 		}
-		
-		// initialize classConditionalDistributions
+		// fill in classConditionalDistributions
 		this.attributes = dataset.getAttributes();	// set attributes
 		for(int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
 			ArrayList<Estimator> estimators = new ArrayList<Estimator>();
-			for(int j = 0; j < dataset.attributes.size() - 1; j++) {
-				if( dataset.attributes.get(j) instanceof NominalAttribute ) {
-					// for nominal attribute; use Categorical Estimator
-					estimators.add( new CategoricalEstimator( ( (NominalAttribute) dataset.attributes.get(j) ).size() ) );
-				} 
-				else {
+			for(int j = 0; j < this.attributes.size() - 1; j++) {
+				if( this.attributes.get(j) instanceof NumericAttribute ) {
 					// for numeric attribute; use Gaussian Estimator
 					estimators.add( new GaussianEstimator() );
+				} 
+				else {
+					// for nominal attribute; use Categorical Estimator
+					estimators.add( new CategoricalEstimator( ( (NominalAttribute) this.attributes.get(j) ).size() ) );
 				}
 			}
-			this.classConditionalDistributions.add(estimators);
+			this.classConditionalDistributions.add( estimators );
 		}
+		// start training using the examples in a given data-set
 		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );	// set CategoricalEstimator
 		for(int i = 0; i < dataset.getExamples().size(); i++) {
 			Example ex = dataset.getExamples().get(i);
-			Double exClass = ex.get( this.attributes.getClassIndex() );
+			int exClass = ex.get( this.attributes.getClassIndex() ).intValue();	// get this example's class value
 			// add 1 to every category
 			this.classDistribution.add( exClass );
 			for(int j = 0; j < this.attributes.size() - 1; j++) {
-				this.classConditionalDistributions.get( exClass.intValue() ).get(j).add( ( ex.get(j) ) );
+				this.classConditionalDistributions.get(exClass).get(j).add( ( ex.get(j) ) );
 			}
 		}
 	}
