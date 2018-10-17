@@ -92,7 +92,6 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 	public void train( DataSet dataset ) throws Exception {
 		this.dataset = dataset;
 		this.scaler.configure( dataset );
-		// update later
 	}
 	public Classifier clone() {
 		return (IBk) Utils.deepClone(this);

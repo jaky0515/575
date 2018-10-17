@@ -30,7 +30,6 @@ public class Evaluator implements OptionHandler {
 		// check if the test data-set is provided
 		if( testSet.getAttributes() == null || testSet.getAttributes().size() == 0 ) {
 			// only train data-set is provided
-			
 			// set partitions
 			trainSet.partitions = new int[ trainSet.getExamples().size() ];
 			trainSet.setRandom( this.random );	// use the same random with same seed as this Evaluator
@@ -67,7 +66,6 @@ public class Evaluator implements OptionHandler {
 			this.folds = Integer.parseInt( args[argsList.indexOf("-x") + 1] );
 			this.tts.getTrainingSet().setFolds( this.folds );
 			this.tts.getTestingSet().setFolds( this.folds );
-			// update later; update the folds value of DataSet?
 		}
 		if( argsList.contains( "-s" ) ) {
 			this.seed = Long.parseLong( args[argsList.indexOf("-s") + 1] );

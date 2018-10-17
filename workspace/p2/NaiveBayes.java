@@ -13,31 +13,79 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 	protected ArrayList< ArrayList<Estimator> > classConditionalDistributions;
 
 	public NaiveBayes() {
-
+		this.classDistribution = new CategoricalEstimator();
+		this.classConditionalDistributions = new ArrayList< ArrayList<Estimator> >();
 	}
 	public NaiveBayes( String[] options ) throws Exception {
-		// update later
+		this.setOptions( options );	// set options
 	}
 	public Performance classify( DataSet dataSet ) throws Exception {
-		// update later
-		return null;
+		Performance perform = new Performance( dataSet.getAttributes() );
+		Examples exs = dataSet.getExamples();
+		if( exs != null ) {
+			for(int i = 0; i < exs.size(); i++) {
+				//				perform.add( this.classify( exs.get(i) ), this.getDistribution( exs.get(i) ) );
+				perform.add( exs.get(i).get( dataSet.getAttributes().getClassIndex() ).intValue(), this.getDistribution( exs.get(i) ) );
+			}
+		}
+		return perform;
 	}
 	public int classify( Example example ) throws Exception {
-		// update later
-		return -1;
+		// parameter validation
+		if( example == null || example.isEmpty() ) {
+			throw new Exception("Error: invalid example passed-in");
+		}
+		return Utils.maxIndex( this.getDistribution( example ) );
 	}
 	public double[] getDistribution( Example example ) throws Exception {
-		// update later
-		return null;
+		double[] dist = new double[ this.attributes.getClassAttribute().size() ];
+		double sum = 0;
+		for(int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
+			double classLabel = 1;
+			for(int j = 0; j < this.attributes.size() - 1; j++) {
+				classLabel *= this.classConditionalDistributions.get(i).get(j).getProbability( example.get(j) );
+			}
+			dist[ i ] = (double) this.classDistribution.dist.get(i) / this.classDistribution.n * classLabel;
+			sum += dist[ i ];
+		}
+		for(int i = 0; i < dist.length; i++) {
+			dist[ i ] /= sum;
+		}
+		return dist;
 	}
 	public Classifier clone() {
 		return (NaiveBayes) Utils.deepClone(this);
 	}
 	public void train( DataSet dataset ) throws Exception {
-		// update later
+		this.attributes = dataset.getAttributes();
+		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );
+
+		for (int i = 0; i < this.attributes.getClassAttribute().size(); i++) {
+			ArrayList<Estimator> estimators = new ArrayList<Estimator>();
+			for (int j = 0; j < dataset.attributes.size() - 1; j++) {
+				if (dataset.attributes.get(j) instanceof NominalAttribute) {
+					NominalAttribute nominalAttr = (NominalAttribute) dataset.attributes.get(j);
+					estimators.add( new CategoricalEstimator( nominalAttr.size() ) );
+				} 
+				else {
+					estimators.add( new GaussianEstimator() );
+				}
+			}
+			this.classConditionalDistributions.add(estimators);
+		}
+
+		// train
+		for (int i = 0; i < dataset.getExamples().size(); i++) {
+			this.classDistribution.add(dataset.getExamples().get(i).get(this.attributes.getClassIndex()));
+			for (int j = 0; j < this.attributes.size() - 1; j++) {
+				this.classConditionalDistributions
+						.get(dataset.getExamples().get(i).get(this.attributes.getClassIndex()).intValue()).get(j)
+						.add((dataset.getExamples().get(i).get(j)));
+			}
+		}
 	}
 	public void setOptions( String[] options ) {
-		// update later
+		
 	}
 	public static void main( String[] args ) {
 		try {

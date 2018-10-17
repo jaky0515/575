@@ -24,6 +24,6 @@ public class CategoricalEstimator extends Estimator {
 		this.dist.set( x.intValue(), this.dist.get( x.intValue() ) + 1 );
 	}
 	public Double getProbability( Number x ) {
-		return Double.valueOf( ( this.dist.get(x.intValue()) + 1 ) / ( this.getN() + this.dist.size() ) );
+		return Double.valueOf( ( this.dist.get( x.intValue() ) + 1 ) / ( this.getN() + this.dist.size() ) );
 	}
 }

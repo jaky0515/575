@@ -18,13 +18,13 @@ public class GaussianEstimator extends Estimator {
 		this.sumsqr += Math.pow(x.doubleValue(), 2);
 	}
 	public Double getMean() {
-		return this.sum / this.getN();
+		return this.sum / ( (double) this.getN() );
 	}
 	public Double getVariance() {
-		return ( this.sumsqr - ( Math.pow(this.sum, 2) / this.getN()) ) / ( this.getN() - 1 );
+		return ( this.sumsqr - ( Math.pow( this.sum, 2 ) / ( (double) this.getN() )) ) / ( (double) ( this.getN() - 1 ) );
 	}
 	public Double getProbability( Number x ) {
 		Double var = this.getVariance();
-		return oneOverSqrt2PI * ( 1.0 / Math.sqrt( var ) ) * Math.exp( (-1.0 * Math.pow(x.doubleValue() - this.getMean(), 2) ) / ( 2.0 * var ));
+		return oneOverSqrt2PI * ( 1.0 / Math.sqrt( var ) ) * Math.exp( (-1.0 * Math.pow( x.doubleValue() - this.getMean(), 2 ) ) / ( 2.0 * var ));
 	}
 }

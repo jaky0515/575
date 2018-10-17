@@ -26,7 +26,14 @@ public abstract class Classifier extends Object implements OptionHandler {
 		}
 	}
 	public String toString() {
-		// update later
-		return null;
+		StringBuilder strBuilder = new StringBuilder();
+		if( this instanceof IBk ) {
+			strBuilder.append("k = ").append( ( (IBk) this ).k );
+			strBuilder.append("\ndataset: \n").append( ( (IBk) this ).dataset );
+		}
+		else {
+			strBuilder.append("attributes:\n").append( ( (NaiveBayes) this ).attributes );
+		}
+		return strBuilder.toString();
 	}
 }

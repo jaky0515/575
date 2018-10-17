@@ -47,11 +47,10 @@ public class Scaler extends Object {
 		}
 	}
 	public DataSet scale( DataSet ds ) throws Exception {
-		// configure to set up mins and maxs
 		this.configure( ds );
 		// scale numeric values in the examples
 		for(int i = 0; i < ds.getExamples().size(); i++) {
-			Example scaledEx = this.scale(ds.getExamples().get(i));
+			Example scaledEx = this.scale( ds.getExamples().get(i) );
 			ds.getExamples().set(i, scaledEx);
 		}
 		return ds;
