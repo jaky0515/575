@@ -96,6 +96,7 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		// validation
 		if( dataset == null || dataset.getAttributes() == null || dataset.getAttributes().size() == 0 ||
 				dataset.getExamples() == null || dataset.getExamples().isEmpty() ) {
+			Examples examples = dataset.getExamples();
 			throw new Exception("Error: invalid DataSet object passed-in!");
 		}
 		// fill in classConditionalDistributions

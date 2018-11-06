@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -12,6 +13,7 @@ public class Evaluator implements OptionHandler {
 	private long seed = 2026875034;
 	private Random random;
 	private int folds = 10;
+	private Double holdouts = null;
 	private Classifier classifier;
 	private TrainTestSets tts;
 	
@@ -45,14 +47,47 @@ public class Evaluator implements OptionHandler {
 		if( testSet.getAttributes() == null || testSet.getAttributes().size() == 0 ) {
 			// only train data-set is provided
 			perform = new Performance( trainSet.getAttributes() );
-			for(int i = 0; i < this.folds; i++) {
-				Classifier classifier = this.classifier.clone();
-				// cross-validate each bin
-				TrainTestSets cvSets = trainSet.getCVSets( i );
-				// train with current train data-set
-				classifier.train( cvSets.getTrainingSet() );
-				// add current performance (tested with the current test data-set)
-				perform.add( classifier.classify( cvSets.getTestingSet() ) );
+			// check if hold-out value is passed-in
+			if( this.holdouts == null ) {
+				// use k-fold method
+				double totalAUC = 0;
+				for(int i = 0; i < this.folds; i++) {
+					Classifier classifier = this.classifier.clone();
+					// cross-validate each bin
+					TrainTestSets cvSets = trainSet.getCVSets( i );
+					// train with current train data-set
+					classifier.train( cvSets.getTrainingSet() );
+					// add current performance (tested with the current test data-set)
+					perform.add( classifier.classify( cvSets.getTestingSet() ) );
+					totalAUC += perform.getAccuracy();
+				}
+				// take the average and set this value as AUC
+				perform.setAvgAUC( totalAUC / this.folds );
+			}
+			else {
+				// use hold-out method
+				DataSet newTrainSet = new DataSet( trainSet.getAttributes() );
+				DataSet newTestSet = new DataSet( trainSet.getAttributes() );
+				newTrainSet.setRandom( trainSet.random );
+				newTestSet.setRandom( trainSet.random );
+				// randomly pick percentage of examples from trainSet for newTrainSet
+				int numTrainExs = (int) Math.floor( trainSet.getExamples().size() * this.holdouts );
+				for(int i = 0; i < trainSet.getExamples().size(); i++) {
+					// randomly get 0 or 1
+					int randomVal = trainSet.random.nextInt( 1 );
+					if( randomVal == 0 && newTrainSet.getExamples().size() < numTrainExs ) {
+						// if newTrainSet is not full, add it to the newTrainSet
+						newTrainSet.add( trainSet.getExamples().get( i ) );
+					}
+					else {
+						// otherwise, insert to newTestSet
+						newTestSet.add( trainSet.getExamples().get( i ) );
+					}
+				}
+				// train using newTrainSet
+				classifier.train( newTrainSet );
+				// compute performance using newTestSet
+				perform.add( classifier.classify( newTestSet ) );
 			}
 		}
 		else {
@@ -70,12 +105,11 @@ public class Evaluator implements OptionHandler {
 	 * @param options - the arguments
 	 */
 	public void setOptions( String args[] ) throws Exception {
-		List<String> argsList = Arrays.asList( args );
+ 		List<String> argsList = Arrays.asList( args );
 		this.tts = new TrainTestSets();
 		this.tts.setOptions( args );
 		if( argsList.contains( "-x" ) ) {
 			// if -x exists, update the number of folds
-			String val = args[argsList.indexOf("-x") + 1];
 			this.folds = Integer.parseInt( args[argsList.indexOf("-x") + 1] );
 			if( this.folds <= 0 ) {
 				throw new Exception("Error: invalid fold value detected!");
@@ -87,6 +121,14 @@ public class Evaluator implements OptionHandler {
 			// if -s exists, update the seed value
 			this.seed = Long.parseLong( args[argsList.indexOf("-s") + 1] );
 			this.random.setSeed( this.seed );
+		}
+		if( argsList.contains( "-p" ) ) {
+			// if -p exists, use the hold-out method
+			this.holdouts = Double.parseDouble( args[argsList.indexOf("-p") + 1] );
+			// check the value of holdouts
+			if( this.holdouts > 1.0 || this.holdouts < 0.0 ) {
+				throw new Exception("Error: invalid hold-out value passed-in!");
+			}
 		}
 		this.tts.getTrainingSet().setRandom( this.random );
 		this.tts.getTestingSet().setRandom( this.random );
