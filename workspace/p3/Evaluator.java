@@ -70,6 +70,8 @@ public class Evaluator implements OptionHandler {
 				DataSet newTestSet = new DataSet( trainSet.getAttributes() );
 				newTrainSet.setRandom( trainSet.random );
 				newTestSet.setRandom( trainSet.random );
+				newTrainSet.examples = new Examples( trainSet.getAttributes() );
+				newTestSet.examples = new Examples( trainSet.getAttributes() );
 				// randomly pick percentage of examples from trainSet for newTrainSet
 				int numTrainExs = (int) Math.floor( trainSet.getExamples().size() * this.holdouts );
 				for(int i = 0; i < trainSet.getExamples().size(); i++) {
@@ -85,9 +87,9 @@ public class Evaluator implements OptionHandler {
 					}
 				}
 				// train using newTrainSet
-				classifier.train( newTrainSet );
+				this.classifier.train( newTrainSet );
 				// compute performance using newTestSet
-				perform.add( classifier.classify( newTestSet ) );
+				perform = this.classifier.classify( newTestSet );
 			}
 		}
 		else {

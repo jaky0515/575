@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.List;
 
 /*
  * TrainTestSets.java
@@ -77,14 +78,15 @@ public class TrainTestSets implements OptionHandler{
 			throw new Exception("Invalid arguments passed!");
 		}
 		try {
+			List<String> optList = Arrays.asList( options );
 			// load data
 			this.train = new DataSet();
 			// load training data
-			this.train.load(options[1].trim());
-			if(options.length == 4) {
+			this.train.load( options[optList.indexOf("-t") + 1] );
+			if( optList.contains( "-T" ) ) {
 				this.test = new DataSet();
 				// load testing data
-				this.test.load(options[3].trim());
+				this.test.load( options[optList.indexOf("-T") + 1] );
 			}
 		}
 		catch(Exception e) {

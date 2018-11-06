@@ -52,11 +52,14 @@ public class Performance extends Object {
 		this.n++;
 		// get the best prediction out of pr[]
 		int predicted = Utils.maxIndex( pr );
-		if( predicted == 0 ) {
-			this.prPos.add( pr[ 0 ] );
-		}
-		else {
-			this.prNeg.add( pr[ 1 ] );
+		if( this.c == 2 ) {
+			// perform this only when two-class data-set is provided
+			if( predicted == 0 ) {
+				this.prPos.add( pr[ 0 ] );
+			}
+			else {
+				this.prNeg.add( pr[ 1 ] );
+			}
 		}
 		this.confusionMatrix[ actual ][ predicted ]++;
 		// increment correct if actual and predicted match
@@ -84,15 +87,18 @@ public class Performance extends Object {
 				this.confusionMatrix[i][j] += p.confusionMatrix[i][j];
 			}
 		}
-		if( this.prNeg == null || this.prPos == null ) {
-			this.prNeg = new ArrayList<Double>();
-			this.prPos = new ArrayList<Double>();
+		if( this.c == 2 ) {
+			// perform this only when two-class data-set is provided
+			if( this.prNeg == null || this.prPos == null ) {
+				this.prNeg = new ArrayList<Double>();
+				this.prPos = new ArrayList<Double>();
+			}
+			this.prNeg.addAll( p.prNeg );
+			this.prPos.addAll( p.prPos );
+			double auc = p.getAUC();
+			this.aucSum += auc;
+			this.aucSumSqr += Math.pow( auc, 2 );
 		}
-		this.prNeg.addAll( p.prNeg );
-		this.prPos.addAll( p.prPos );
-		double auc = p.getAUC();
-		this.aucSum += auc;
-		this.aucSumSqr += Math.pow( auc, 2 );
 	}
 	/**
 	 * Compute and return accuracy
@@ -115,16 +121,30 @@ public class Performance extends Object {
 		StringBuilder strBuilder = new StringBuilder();
 		strBuilder.append("Performance:\n\t** Accuracy = ").append( Math.round( this.getAccuracy() * 100.00 ) ).append( "%" );
 		strBuilder.append("\n\t** SDAcc = ").append( this.getSDAcc() );
-		strBuilder.append("\n\t** AUC = ").append( Math.round( ( ( this.avgAUC == null ) ? this.getAUC() : this.avgAUC ) * 100.00 ) ).append( "%" );
-		strBuilder.append("\n\t** SDAUC = ").append( this.getSDAUC() );
+		if( this.c > 2 ) {
+			strBuilder.append("\n\t** This data-set is not a two-class data-set, therefore, AUC and SDAUC value don't exist");
+		}
+		else {
+			strBuilder.append("\n\t** AUC = ").append( Math.round( ( ( this.avgAUC == null ) ? this.getAUC() : this.avgAUC ) * 100.00 ) ).append( "%" );
+			strBuilder.append("\n\t** SDAUC = ").append( this.getSDAUC() );
+		}
 		return strBuilder.toString();
 	}
-	// update later
+	/**
+	 * Helper method for computing AUC
+	 * @param n
+	 * @param p
+	 * @return
+	 */
 	private double i( double n, double p ) {
 		return ( n < p ) ? 1.0 : ( ( n == p ) ? 0.5 : 0.0 );
 	}
+	/**
+	 * Compute and return area under the ROC curve
+	 * @return AUC
+	 */
 	public double getAUC() {
-		if( this.attributes.get( this.attributes.getClassIndex() ).size() > 2 ) {
+		if( this.c > 2 ) {
 			return 0;
 		}
 		double auc = 0;
@@ -136,10 +156,18 @@ public class Performance extends Object {
 		// averaged AUC results if we use k-folds cross validation
 		return ( this.prNeg.isEmpty() || this.prPos.isEmpty() ) ? 0.0 : auc / ( this.prNeg.size() * this.prPos.size() );
 	}
+	/**
+	 * Compute and return the SD of AUC
+	 * @return
+	 */
 	public double getSDAUC() {
 		// sd of averaged auc over folds
 		return ( this.m == 0 ) ? 0 : ( (this.aucSumSqr - ( Math.pow(this.aucSum, 2) / (double)this.m ) ) / ( (double)( this.m - 1 ) ) );
 	}
+	/**
+	 * Setter method for avgAUC
+	 * @param avgAUC
+	 */
 	public void setAvgAUC( double avgAUC ) {
 		this.avgAUC = avgAUC;
 	}

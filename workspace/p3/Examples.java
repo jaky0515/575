@@ -78,10 +78,17 @@ public class Examples extends ArrayList<Example> {
 		}
 		return strBuilder.toString();
 	}
-	// update later
+	/**
+	 * Accessor for classCounts
+	 * @return classCounts
+	 */
 	public int[] getClassCounts() {
 		return this.classCounts;
 	}
+	/**
+	 * Stores a given example and increment the classCounts depending on the label of a given example
+	 * @param example
+	 */
 	public boolean add( Example example ) {
 		int classIdx = this.attributes.getClassIndex();
 		// check if classCounts is null

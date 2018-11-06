@@ -219,11 +219,20 @@ public class DataSet {
 		}
 		this.folds = folds;
 	}
-	// update later
+	/**
+	 * Check if this data-set is empty by checking the number of examples in this data-set
+	 * @return boolean - true if empty, otherwise false
+	 */
 	public boolean isEmpty() {
 		// check if examples exist in this data-set
 		return ( this.examples == null || this.examples.isEmpty() ) ? true : false;
 	}
+	/**
+	 * Compute and return the gain ratio
+	 * @param attribute
+	 * @return gain ratio of a given attribute
+	 * @throws Exception
+	 */
 	public double gainRatio( int attribute ) throws Exception {
 		// validation
 		if( this.isEmpty() || this.attributes == null || this.attributes.size() == 0 ) {
@@ -273,6 +282,11 @@ public class DataSet {
 		// calculate GainRatio
 		return ( splitInfo == 0.0 ) ? 0.0 : gain / splitInfo;	// GainRatio() = Gain() / SplitInfo()
 	}
+	/**
+	 * Compute and return the best splitting attribute
+	 * @return index of the best splitting attribute
+	 * @throws Exception
+	 */
 	public int getBestSplittingAttribute() throws Exception {
 		// validation
 		if( this.attributes == null || this.attributes.size() == 0 || this.isEmpty() ) {
@@ -300,6 +314,12 @@ public class DataSet {
 		}
 		return bestAttrIdx;
 	}
+	/**
+	 * Split the examples in the data-set by the given attribute and return the list of the data-sets with examples
+	 * @param attribute
+	 * @return list of DataSet
+	 * @throws Exception
+	 */
 	public ArrayList<DataSet> splitOnAttribute( int attribute ) throws Exception {
 		// validation
 		if( this.isEmpty() || this.attributes == null || this.attributes.size() == 0 || attribute < 0 || attribute >= this.attributes.size() || this.attributes.get( attribute ) instanceof NumericAttribute ) {
@@ -325,6 +345,11 @@ public class DataSet {
 		}
 		return dsList;
 	}
+	/**
+	 * Check if the examples of this data-set have the same class label
+	 * @return boolean - true if all examples have the same class label, false otherwise
+	 * @throws Exception
+	 */
 	public boolean homogeneous() throws Exception {
 		// validation
 		if( this.examples == null || this.examples.isEmpty() ) {
@@ -342,6 +367,11 @@ public class DataSet {
 		// all examples have the same class label
 		return true;
 	}
+	/**
+	 * Returns the classCounts of this data-set's examples
+	 * @return int[] - classCounts of the examples
+	 * @throws Exception
+	 */
 	public int[] getClassCounts() throws Exception {
 		// validation
 		if( this.examples.getClassCounts() == null || this.examples.getClassCounts().length == 0 ) {
@@ -349,6 +379,11 @@ public class DataSet {
 		}
 		return this.examples.getClassCounts();
 	}
+	/**
+	 * Returns the class label that most examples have
+	 * @return index of the class label
+	 * @throws Exception
+	 */
 	public int getMajorityClassLabel() throws Exception {
 		// validation
 		if( this.isEmpty() || this.examples.getClassCounts() == null || this.examples.getClassCounts().length == 0 ) {
