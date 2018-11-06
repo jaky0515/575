@@ -53,7 +53,7 @@ public class Utils {
 	 * @return calculated U25% value
 	 */
 	public static double u25( int n, int x ) {
-		// implements the calculation of a node’s error for pruning
+		// implements the calculation of a node error for pruning
 		double a = Math.pow(Utils.z, 2) * ( ( x + 0.5 ) * ( 1 - ( ( x + 0.5 ) / n ) ) + ( Math.pow(Utils.z, 2) / 4 ) );
 		return ( x + 0.5 + ( Math.pow(Utils.z, 2) / 2 ) + Math.sqrt( a ) ) / ( n + Math.pow(Utils.z, 2) );
 	}
