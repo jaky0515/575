@@ -1,12 +1,16 @@
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class KernelPerceptron extends Classifier implements Serializable, OptionHandler {
-	
+	protected double[] coeffs;
+	protected int maxIterCnt = 50000;
+	protected boolean fc = false;
+
 	/**
 	 * Default constructor
 	 */
 	public KernelPerceptron() {
-		
+
 	}
 	/**
 	 * Constructor
@@ -24,7 +28,8 @@ public class KernelPerceptron extends Classifier implements Serializable, Option
 	 * @param options - the arguments
 	 */
 	public void setOptions( String options[] ) {
-		
+		// search for '-fc' and if it exists, update the value of fc
+		this.setFc( Arrays.asList( options ).contains( "-fc" ) ? true : false);
 	}
 	/**
 	 * Classifies a given data-set and return its performance
@@ -68,7 +73,56 @@ public class KernelPerceptron extends Classifier implements Serializable, Option
 	 * @param dataset
 	 */
 	public void train( DataSet dataset ) throws Exception {
-		
+		// validation on data-set
+		if( dataset.getAttributes().get( dataset.getAttributes().getClassIndex() ).size() != 2 ) {
+			throw new Exception("Error: this dataset is not a two-class dataset!");
+		}
+		// initialize the coefficients
+		this.coeffs = new double[ dataset.getExamples().size() ];
+		for(int i = 0; i < this.coeffs.length; i++) {
+			this.coeffs[ i ] = 0.0;
+		}
+		boolean isConverged = false;
+		int iterCount = 0;
+		Attributes attrs = dataset.getAttributes();
+		int classIdx = attrs.getClassIndex();
+		while( !isConverged && iterCount < this.maxIterCnt ) {
+			iterCount++;
+			isConverged = true;
+			for(int i = 0; i < dataset.getExamples().size(); i++) {
+				Example example = dataset.getExamples().get( i );
+				double y_i = example.get( classIdx );
+				// do the encoding for the class label
+				if( attrs.get( classIdx ).size() == 2 ) {
+					y_i = ( y_i == 0.0 ) ? -1.0 : 1.0;
+				}
+
+				double product = 0.0;
+				for(int j = 0; j < dataset.getExamples().size(); j++) {
+					double y_j = dataset.getExamples().get( j ).get( classIdx );
+					// do the encoding for the class label
+					if( attrs.get( classIdx ).size() == 2 ) {
+						y_j = ( y_j == 0.0 ) ? -1.0 : 1.0;
+					}
+					product += this.coeffs[ j ] * y_j * this.polynomial( example, dataset.getExamples().get( j ) );
+				}
+				if( y_i * product <= 0 ) {
+					this.coeffs[ i ] += 1.0;
+					isConverged = false;
+				}
+			}
+		}
+
+		if( !isConverged ) {
+			throw new FailedToConvergeException( this.maxIterCnt );
+		}
+	}
+	private double polynomial(Example x, Example z) {
+		double result = 0.0;
+		for(int i = 0; i < x.size(); i++) {
+			result += x.get( i ) * z.get( i );
+		}
+		return Math.pow( result, 2.0 );
 	}
 	/**
 	 * Makes a deep copy of this class
@@ -76,6 +130,9 @@ public class KernelPerceptron extends Classifier implements Serializable, Option
 	 */
 	public Classifier clone() {
 		return ( KernelPerceptron ) Utils.deepClone( this );
+	}
+	public void setFc( boolean fc ) {
+		this.fc = fc;
 	}
 	/**
 	 * Main method

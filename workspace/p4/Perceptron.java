@@ -1,12 +1,11 @@
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Perceptron extends Classifier implements Serializable, OptionHandler {
 	protected double learningRate = 0.9;
-	protected double minErr = 0.1;
-	protected int j; 
-	protected double[] weightVector;
+	protected double[] W;
+	protected int maxIterCnt = 50000;
+	protected boolean fc = false;
 
 	/**
 	 * Default constructor
@@ -30,10 +29,8 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	 * @param options - the arguments
 	 */
 	public void setOptions( String options[] ) {
-		// search for '-k' and if it exists, update the value of k
-		if( Arrays.asList( options ).contains( "-J" ) ) {
-			this.setJ( Integer.parseInt( options[Arrays.asList( options ).indexOf("-J") + 1] ) );
-		}
+		// search for '-fc' and if it exists, update the value of fc
+		this.setFc( Arrays.asList( options ).contains( "-fc" ) ? true : false);
 	}
 	/**
 	 * Classifies a given data-set and return its performance
@@ -76,26 +73,22 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	 * Train using a given data-set
 	 * @param dataset
 	 */
-	/*
-	 * The perceptron iterates over the training set, 
-	 updating the weight vector every time it encounters an incorrectly classified example.
-	 * It iterates through the training examples 
-	 until all examples are correctly classified
-	 * Every time an example xi is misclassified, we add y_i * x_i to the weight vector.
-	 * x_i = current example
-	 * y_i = label of the current example (x_i)
-	 */
 	public void train( DataSet dataset ) throws Exception {
+		// validation on data-set
+		if( dataset.getAttributes().get( dataset.getAttributes().getClassIndex() ).size() != 2 ) {
+			throw new Exception("Error: this dataset is not a two-class dataset!");
+		}
+
 		// initialize the weight vector
-		this.weightVector = new double[  dataset.getExamples().get(0).size() - 1 ];
-		for(int i = 0; i < this.weightVector.length; i++) {
-			this.weightVector[ i ] = 0.0;
+		this.W = new double[ dataset.getAttributes().size() - 1 ];
+		for(int i = 0; i < this.W.length; i++) {
+			this.W[ i ] = 0.0;
 		}
 		boolean isConverged = false;
 		int iterCount = 0;
 		Attributes attrs = dataset.getAttributes();
 		int classIdx = attrs.getClassIndex();
-		while( !isConverged && iterCount < 500000 ) {
+		while( !isConverged && iterCount < this.maxIterCnt ) {
 			iterCount++;
 			isConverged = true;
 			for( Example example : dataset.getExamples() ) {
@@ -105,31 +98,26 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 					y_i = ( y_i == 0.0 ) ? -1.0 : 1.0;
 				}
 				double product = 0.0;
-				for(int i = 0; i < this.weightVector.length; i++) {
+				for(int i = 0; i < this.W.length; i++) {
 					double attrVal = example.get( i );
 					// check if this attribute is a nominal attribute and binary
 					if( attrs.get( i ) instanceof NominalAttribute && attrs.get( i ).size() == 2 ) {
 						// do the encoding for this example attribute value
 						attrVal = ( attrVal == 0.0 ) ? -1.0 : 1.0;
 					}
-					product += this.weightVector[ i ] * attrVal;
+					product += this.W[ i ] * attrVal;
 				}
-				
+
 				if( y_i * product <= 0 ) {
-					// get sum of all the attribute values in this example
-					double xSum = 0.0;
-					for(int i = 0; i < example.size() - 1; i++) {
+					// update the weight vector
+					for(int i = 0; i < this.W.length; i++) {
 						double attrVal = example.get( i );
 						// check if this attribute is a nominal attribute and binary
 						if( attrs.get( i ) instanceof NominalAttribute && attrs.get( i ).size() == 2 ) {
 							// do the encoding for this example attribute value
 							attrVal = ( attrVal == 0.0 ) ? -1.0 : 1.0;
 						}
-						xSum += attrVal;
-					}
-					// update the weight vector
-					for(int i = 0; i < this.weightVector.length; i++) {
-						this.weightVector[ i ] += this.learningRate * y_i * xSum;
+						this.W[ i ] += ( this.learningRate * y_i * attrVal );
 					}
 					isConverged = false;
 				}
@@ -137,7 +125,7 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 		}
 
 		if( !isConverged ) {
-			throw new FailedToConvergeException();
+			throw new FailedToConvergeException( this.maxIterCnt );
 		}
 	}
 	/**
@@ -147,12 +135,8 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	public Classifier clone() {
 		return ( Perceptron ) Utils.deepClone( this );
 	}
-	/**
-	 * Setter function for j (number of units in the hidden layer)
-	 * @param j
-	 */
-	public void setJ( int j ) {
-		this.j = j;
+	public void setFc( boolean fc ) {
+		this.fc = fc;
 	}
 	/**
 	 * Main method
