@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Perceptron extends Classifier implements Serializable, OptionHandler {
@@ -6,6 +7,7 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	protected double[] W;
 	protected int maxIterCnt = 50000;
 	protected boolean fc = false;
+	protected Attributes attributes = null;
 
 	/**
 	 * Default constructor
@@ -67,7 +69,38 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	 * @return double[] - distribution
 	 */
 	public double[] getDistribution( Example example ) throws Exception {
-		return null;
+		ArrayList< ArrayList< Double[] > > encodedAttrs = this.attributes.getEncodedAttrs();
+		double[] x_i = new double[ this.W.length ];
+		int counter = 0;
+		for(int j = 0; j < encodedAttrs.size() - 1; j++) {
+			if( this.attributes.get( j ) instanceof NumericAttribute ) {
+				x_i[ counter++ ] = example.get( j );
+			}
+			else {
+				int attrIdx = example.get( j ).intValue();
+				for(int k = 0; k < encodedAttrs.get( j ).get( attrIdx ).length; k++) {
+					Double attrVal = encodedAttrs.get( j ).get( attrIdx )[ k ];
+					x_i[ counter++ ] = attrVal;
+				}
+			}
+		}
+		x_i[ counter ] = -1.0;	// add bias
+		double product = 0.0;
+		for(int j = 0; j < x_i.length; j++) {
+			product += this.W[ j ] * x_i[ j ];
+		}
+		double[] dist = new double[ 2 ];
+		if( this.fc ) {
+			double lambda = 1.0;
+			double sigmoid = 1 / ( 1 + ( Math.exp( -1.0 * lambda * product ) ) );
+			dist[ 0 ] = 1.0 - sigmoid;
+			dist[ 1 ] = sigmoid;
+		}
+		else {
+			dist[ 0 ] = ( product >= 0 ) ? -1.0 : 1.0;
+			dist[ 1 ] = ( product >= 0 ) ? 1.0 : -1.0;
+		}
+		return dist;
 	}
 	/**
 	 * Train using a given data-set
@@ -79,53 +112,59 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 			throw new Exception("Error: this dataset is not a two-class dataset!");
 		}
 
+		// perform bipolar encoding for the attribute values
+		if( this.attributes == null ) {
+			dataset.getAttributes().encode( true );
+			this.attributes = dataset.getAttributes();
+		}
+
 		// initialize the weight vector
-		this.W = new double[ dataset.getAttributes().size() - 1 ];
+		ArrayList< ArrayList< Double[] > > encodedAttrs = this.attributes.getEncodedAttrs();
+		int w_len = 1;	// start with 1 since including bias
+		for(int i = 0; i < encodedAttrs.size() - 1; i++) {
+			w_len += encodedAttrs.get( i ).get( 0 ).length;
+		}
+		this.W = new double[ w_len ];
 		for(int i = 0; i < this.W.length; i++) {
 			this.W[ i ] = 0.0;
 		}
 		boolean isConverged = false;
 		int iterCount = 0;
-		Attributes attrs = dataset.getAttributes();
-		int classIdx = attrs.getClassIndex();
+		int classIdx = this.attributes.getClassIndex();
 		while( !isConverged && iterCount < this.maxIterCnt ) {
 			iterCount++;
 			isConverged = true;
-			for( Example example : dataset.getExamples() ) {
-				double y_i = example.get( classIdx );
-				// do the encoding for the class label
-				if( attrs.get( classIdx ).size() == 2 ) {
-					y_i = ( y_i == 0.0 ) ? -1.0 : 1.0;
-				}
-				double product = 0.0;
-				for(int i = 0; i < this.W.length; i++) {
-					double attrVal = example.get( i );
-					// check if this attribute is a nominal attribute and binary
-					if( attrs.get( i ) instanceof NominalAttribute && attrs.get( i ).size() == 2 ) {
-						// do the encoding for this example attribute value
-						attrVal = ( attrVal == 0.0 ) ? -1.0 : 1.0;
+			for(int i = 0; i < dataset.getExamples().size(); i++) {
+				Example example = dataset.getExamples().get( i );
+				double[] x_i = new double[ w_len ];
+				int counter = 0;
+				for(int j = 0; j < encodedAttrs.size() - 1; j++) {
+					if( this.attributes.get( j ) instanceof NumericAttribute ) {
+						x_i[ counter++ ] = example.get( j );
 					}
-					product += this.W[ i ] * attrVal;
+					else {
+						int attrIdx = example.get( j ).intValue();
+						for(int k = 0; k < encodedAttrs.get( j ).get( attrIdx ).length; k++) {
+							Double attrVal = encodedAttrs.get( j ).get( attrIdx )[ k ];
+							x_i[ counter++ ] = attrVal;
+						}
+					}
+				}
+				x_i[ counter ] = -1.0;	// add bias
+				double y_i = encodedAttrs.get( classIdx ).get( example.get( classIdx ).intValue() )[ 0 ];
+				double product = 0.0;
+				for(int j = 0; j < x_i.length; j++) {
+					product += this.W[ j ] * x_i[ j ];
 				}
 
-				if( y_i * product <= 0 ) {
+				if( y_i * product <= 0.0 ) {
 					// update the weight vector
-					for(int i = 0; i < this.W.length; i++) {
-						double attrVal = example.get( i );
-						// check if this attribute is a nominal attribute and binary
-						if( attrs.get( i ) instanceof NominalAttribute && attrs.get( i ).size() == 2 ) {
-							// do the encoding for this example attribute value
-							attrVal = ( attrVal == 0.0 ) ? -1.0 : 1.0;
-						}
-						this.W[ i ] += ( this.learningRate * y_i * attrVal );
+					for(int j = 0; j < w_len; j++) {
+						this.W[ j ] += ( this.learningRate * y_i * x_i[ j ] );
 					}
 					isConverged = false;
 				}
 			}
-		}
-
-		if( !isConverged ) {
-			throw new FailedToConvergeException( this.maxIterCnt );
 		}
 	}
 	/**

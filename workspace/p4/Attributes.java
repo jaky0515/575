@@ -11,7 +11,7 @@ public class Attributes {
 	private ArrayList<Attribute> attributes = new ArrayList<Attribute>();	// a list of attributes
 	private boolean hasNumericAttributes = false;	// a flag indicating that the data set has one or more numeric attributes
 	private int classIndex;	// stores the position of the class label
-
+	private ArrayList< ArrayList< Double[] > > encodedAttrs = new ArrayList< ArrayList< Double[] > >();
 	/*
 	 * Default constructor.
 	 */
@@ -123,5 +123,42 @@ public class Attributes {
 		}
 		return strBuilder.toString();
 	}
-
+	public void encode( boolean isBipolar ) {
+		this.encodedAttrs = new ArrayList< ArrayList< Double[] > >();
+		// perform encoding for the values
+		double[] vals = new double[ 2 ];
+		vals[ 0 ] = ( isBipolar ) ? -1.0 : 0.0;
+		vals[ 1 ] = ( isBipolar ) ? 1.0 : 1.0;
+		for( Attribute attr : this.attributes ) {
+			ArrayList< Double[] > attrVals;
+			if( attr instanceof NumericAttribute ) {
+				attrVals = new ArrayList< Double[] >();
+				Double[] encodedVal = new Double[ 1 ];
+				encodedVal[ 0 ] = null;
+				attrVals.add( encodedVal );
+			}
+			else {
+				attrVals = new ArrayList< Double[] >();
+				int numBits = (int) Math.ceil( Math.log( attr.size() ) / Math.log( 2 ) );
+				for(int i = 0; i < attr.size(); i++) {
+					Double[] encodedVal = new Double[ numBits ];
+					String binaryStr = Integer.toBinaryString( i );
+					if( binaryStr.length() < numBits ) {
+						for(int j = 0; j < numBits - binaryStr.length(); j++) {
+							encodedVal[ j ] = vals[ 0 ];
+						}
+					}
+					for(int j = 0; j < binaryStr.length(); j++) {
+						encodedVal[ numBits - binaryStr.length() + j ] = vals[ Integer.parseInt( "" + binaryStr.charAt( j )) ];
+					}
+					attrVals.add( encodedVal );
+				}
+			}
+			
+			this.encodedAttrs.add( attrVals );
+		}
+	}
+	public ArrayList< ArrayList< Double[] > > getEncodedAttrs() {
+		return this.encodedAttrs;
+	}
 }

@@ -1,5 +1,4 @@
 import java.io.Serializable;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -119,10 +118,7 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 	 */
 	private double getRandomNum( int min, int max ) {
 		if( random == null ) {
-			random = new Random( seed );
-		}
-		else {
-			random.setSeed( ++seed );
+			random = new Random( this.seed );
 		}
 		double num = random.nextDouble();
 		num *= ( max - min ) + min;
@@ -130,6 +126,9 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 			num = Math.nextDown( max );
 		}
 		return num;
+	}
+	private void updateSeed() {
+		this.seed++;
 	}
 	/**
 	 * Train using a given data-set
@@ -142,7 +141,6 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 		int q = 0;
 		int m = 0;
 		double E = 0.0;
-		double p = 0.0;	// what is the use of this variable?
 
 		this.V = new double[ this.J - 1 ][ this.I ];
 		this.W = new double[ this.K ][ this.J ];
@@ -158,6 +156,7 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 				//				this.W[ i ][ j ] = 0.1 * ( j + 1 );
 			}
 		}
+		this.updateSeed();
 
 		while( q < this.maxIterCnt ) {
 			// start the training
@@ -170,12 +169,14 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 						x[ i ][ 0 ] = -1.0;	// bias
 					}
 					else {
-						x[ i ][ 0 ] = example.get( i );
+						// perform encoding for the attribute values
+						x[ i ][ 0 ] = example.get( i );	
 					}
 				}
 				double[] y = new double[ this.K ];
 				int counter = 0;
 				for(int i = x.length; i < dataset.getAttributes().size(); i++) {
+					// perform encoding for the class label
 					y[ counter++ ] = example.get( i );
 				}
 				double[][] h = new double[ this.J ][ 1 ];
@@ -233,7 +234,6 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 			// step 8
 			if( E > this.minErr ) {
 				E = 0.0;
-				p = 1.0;
 				m = 0;
 			}
 			else {
