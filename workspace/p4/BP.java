@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -11,8 +12,9 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 	protected double[][] V;
 	protected double[][] W;
 	protected int maxIterCnt = 50000;
-	private long seed = 2026875034;
+	protected Attributes attributes = null;
 	private Random random = null;
+	private ArrayList< double[] > encodedExs = new ArrayList< double[] >();
 
 	/**
 	 * Default constructor
@@ -36,7 +38,7 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 	 * @param options - the arguments
 	 */
 	public void setOptions( String options[] ) {
-		// search for '-J' and if it exists, update the value of j
+		// search for -J and if it exists, update the value of j
 		if( Arrays.asList( options ).contains( "-J" ) ) {
 			this.setJ( Integer.parseInt( options[Arrays.asList( options ).indexOf("-J") + 1] ) );
 		}
@@ -80,159 +82,128 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 		if( example == null || example.isEmpty() ) {
 			throw new Exception("Error: invalid Example object passed-in!");
 		}
-		double[][] x = new double[ this.I ][ 1 ];
-		for(int i = 0; i < this.I; i++) {
-			if( i == this.I - 1) {
-				x[ i ][ 0 ] = -1.0;	// bias
-			}
-			else {
-				x[ i ][ 0 ] = example.get( i );
-			}
-		}
-		double[][] h = new double[ this.J ][ 1 ];
+		double[] x = Utils.getEncodedExample( example, this.I, this.attributes );
+		x[ this.I - 1 ] = -1.0;	// bias
+		double[] h = new double[ this.J ];
 		for(int j = 0; j < this.J - 1; j++) {
-			double input = 0.0;
-			double[] V_j = V[ j ];
-			for(int i = 0; i < V_j.length; i++) {
-				input += V_j[ i ] * x[ i ][ 0 ];
-			}
-			h[ j ][ 0 ] = this.sigmoid( input );
+			double product = Utils.dotProduct( this.V[ j ], x );
+			h[ j ] = Utils.sigmoid( product );
 		}
-		h[ this.J - 1 ][ 0 ] = -1.0;	// bias
-		double[][] o = new double[ K ][ 1 ];
-		for(int k = 0; k < K; k++) {
-			double input = 0.0;
-			double[] W_k = W[ k ];
-			for(int i = 0; i < W_k.length; i++) {
-				input += W_k[ i ] * h[ i ][ 0 ];
-			}
-			o[ k ][ 0 ] = this.sigmoid( input );
+		h[ this.J - 1 ] = -1.0;	// bias
+		double[] o = new double[ this.K ];
+		for(int k = 0; k < this.K; k++) {
+			double product = Utils.dotProduct( this.W[ k ] , h );
+			o[ k ] = Utils.sigmoid( product );
 		}
-		return o[ 0 ];
+		return o;
 	}
 	/**
-	 * this method returns a new random double in the given range
-	 * @param min
-	 * @param max
+	 * this method returns a new random double
 	 * @return randomly generated double
 	 */
-	private double getRandomNum( int min, int max ) {
-		if( random == null ) {
-			random = new Random( this.seed );
-		}
-		double num = random.nextDouble();
-		num *= ( max - min ) + min;
-		if( num >= max ) {
-			num = Math.nextDown( max );
-		}
-		return num;
+	private double getRandomNum() {
+		return this.random.nextDouble() / 10.0;
 	}
-	private void updateSeed() {
-		this.seed++;
+	private void encodeExamples( DataSet dataset ) {
+		this.encodedExs = new ArrayList< double[] >();
+		for(int i = 0; i < dataset.getExamples().size(); i++) {
+			Example example = dataset.getExamples().get( i );
+			double[] x_i = Utils.getEncodedExample( example, this.I, this.attributes );
+			this.encodedExs.add( x_i );
+		}
 	}
 	/**
 	 * Train using a given data-set
 	 * @param dataset
 	 */
 	public void train( DataSet dataset ) throws Exception {
+		// perform bipolar encoding for the attribute values
+		dataset.getAttributes().encode( false );
+		this.attributes = dataset.getAttributes();
+
 		// initialization
-		this.I = dataset.getAttributes().size();
-		this.K = 1;
+		ArrayList< ArrayList< Double[] > > encodedAttrs = this.attributes.getEncodedAttrs();
+		this.I = 1;
+		for(int i = 0; i < encodedAttrs.size() - 1; i++) {
+			this.I += encodedAttrs.get( i ).get( 0 ).length;
+		}
+		this.encodeExamples( dataset );
+		int classIdx = dataset.getAttributes().getClassIndex();
+		this.K = dataset.getAttributes().get( classIdx ).size();
 		int q = 0;
 		int m = 0;
 		double E = 0.0;
-
+		this.random = new Random( System.currentTimeMillis() );
 		this.V = new double[ this.J - 1 ][ this.I ];
 		this.W = new double[ this.K ][ this.J ];
 		for(int i = 0; i < this.V.length; i++) {
 			for(int j = 0; j < this.V[ i ].length; j++) {
-				this.V[ i ][ j ] = this.getRandomNum( 0, 1 );
-				//				this.V[ i ][ j ] = 0.1 * ( i + 1 );
+				this.V[ i ][ j ] = this.getRandomNum();
 			}
 		}
 		for(int i = 0; i < this.W.length; i++) {
 			for(int j = 0; j < this.W[ i ].length; j++) {
-				this.W[ i ][ j ] = this.getRandomNum( 0, 1 );
-				//				this.W[ i ][ j ] = 0.1 * ( j + 1 );
+				this.W[ i ][ j ] = this.getRandomNum();
 			}
 		}
-		this.updateSeed();
-
 		while( q < this.maxIterCnt ) {
 			// start the training
 			while( m < dataset.getExamples().size() ) {
 				// step 2
 				Example example = dataset.getExamples().get( m );
-				double[][] x = new double[ this.I ][ 1 ];
-				for(int i = 0; i < this.I; i++) {
-					if( i == this.I - 1) {
-						x[ i ][ 0 ] = -1.0;	// bias
-					}
-					else {
-						// perform encoding for the attribute values
-						x[ i ][ 0 ] = example.get( i );	
-					}
-				}
+				double[] x = this.encodedExs.get( m );
+				x[ this.I - 1 ] = -1.0;	// bias
+
 				double[] y = new double[ this.K ];
-				int counter = 0;
-				for(int i = x.length; i < dataset.getAttributes().size(); i++) {
-					// perform encoding for the class label
-					y[ counter++ ] = example.get( i );
-				}
-				double[][] h = new double[ this.J ][ 1 ];
+				y[ example.get( classIdx ).intValue() ] = 1.0;
+
+				double[] h = new double[ this.J ];
 				for(int j = 0; j < this.J - 1; j++) {
-					double input = 0.0;
-					double[] V_j = this.V[ j ];
-					for(int i = 0; i < V_j.length; i++) {
-						input += V_j[ i ] * x[ i ][ 0 ];
-					}
-					h[ j ][ 0 ] = this.sigmoid( input );
+					double product = Utils.dotProduct( this.V[ j ], x );
+					h[ j ] = Utils.sigmoid( product );
 				}
-				h[ this.J - 1 ][ 0 ] = -1.0;	// bias
-				double[][] o = new double[ this.K ][ 1 ];
+				h[ this.J - 1 ] = -1.0;	// bias
+
+				double[] o = new double[ this.K ];
 				for(int k = 0; k < this.K; k++) {
-					double input = 0.0;
-					double[] W_k = this.W[ k ];
-					for(int i = 0; i < W_k.length; i++) {
-						input += W_k[ i ] * h[ i ][ 0 ];
-					}
-					o[ k ][ 0 ] = this.sigmoid( input );
+					double product = Utils.dotProduct( this.W[ k ], h );
+					o[ k ] = Utils.sigmoid( product );
 				}
 				// step 3
 				for(int k = 0; k < this.K; k++) {
-					E += 0.5 * ( Math.pow( ( y[ k ] - o[ k ][ 0 ] ), 2.0 ) );
+					E = 0.5 * ( Math.pow( ( y[ k ] - o[ k ] ), 2.0 ) ) + E;
 				}
 				// step 4
-				double[][] signal_o = new double[ this.K ][ 1 ];
-				double[][] signal_h = new double[ this.J - 1 ][ 1 ];
+				double[] signal_o = new double[ this.K ];
+				double[] signal_h = new double[ this.J ];
 				for(int k = 0; k < this.K; k++) {
-					signal_o[ k ][ 0 ] = ( y[ k ] - o[ k ][ 0 ] ) * ( 1 - o[ k ][ 0 ] ) * o[ k ][ 0 ];
+					signal_o[ k ] = ( y[ k ] - o[ k ] ) * ( 1 - o[ k ] ) * o[ k ];
 				}
-				for(int j = 0; j < this.J - 1; j++) {
+				for(int j = 0; j < this.J; j++) {
 					double sum = 0.0;
 					for(int k = 0; k < this.K; k++) {
-						sum += signal_o[ k ][ 0 ] * this.W[ k ][ j ];
+						sum += signal_o[ k ] * this.W[ k ][ j ];
 					}
-					signal_h[ j ][ 0 ] = h[ j ][ 0 ] * ( 1 - h[ j ][ 0 ] ) * sum;
+					signal_h[ j ] = h[ j ] * ( 1 - h[ j ] ) * sum;
 				}
 				// step 5
 				for(int k = 0; k < this.K; k++) {
 					for(int j = 0; j < this.J; j++) {
-						this.W[ k ][ j ] += this.learningRate * signal_o[ k ][ 0 ] * h[ j ][ 0 ];
+						this.W[ k ][ j ] += this.learningRate * signal_o[ k ] * h[ j ];
 					}
 				}
 				// step 6
 				for(int j = 0; j < this.J - 1; j++) {
 					for(int i = 0; i < this.I; i++) {
-						this.V[ j ][ i ] += this.learningRate * signal_h[ j ][ 0 ] * x[ i ][ 0 ];
+						this.V[ j ][ i ] += this.learningRate * signal_h[ j ] * x[ i ];
 					}
 				}
 				// step 7
 				m++;
-				q++;
 			}
+			q++;
 			// step 8
-			if( E > this.minErr ) {
+			if( E >= this.minErr ) {
 				E = 0.0;
 				m = 0;
 			}
@@ -244,15 +215,6 @@ public class BP extends Classifier implements Serializable, OptionHandler {
 		if( q >= this.maxIterCnt ) {
 			throw new FailedToConvergeException( this.maxIterCnt );
 		}
-	}
-	/**
-	 * sigmoid activation method
-	 * @param x
-	 * @return result
-	 */
-	private double sigmoid( double x ) {
-		double lambda = 1.0;
-		return 1 / ( 1 + ( Math.exp( -1.0 * lambda * x ) ) );
 	}
 	/**
 	 * Makes a deep copy of this class

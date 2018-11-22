@@ -119,7 +119,7 @@ public class NaiveBayes extends Classifier implements Serializable, OptionHandle
 		this.classDistribution = new CategoricalEstimator( this.attributes.getClassAttribute().size() );	// set CategoricalEstimator
 		for(int i = 0; i < dataset.getExamples().size(); i++) {
 			Example ex = dataset.getExamples().get(i);
-			int exClass = ex.get( this.attributes.getClassIndex() ).intValue();	// get this example's class value
+			int exClass = ex.get( this.attributes.getClassIndex() ).intValue();	// get this example class value
 			// add 1 to every category
 			this.classDistribution.add( exClass );
 			for(int j = 0; j < this.attributes.size() - 1; j++) {

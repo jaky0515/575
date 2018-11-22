@@ -123,6 +123,10 @@ public class Attributes {
 		}
 		return strBuilder.toString();
 	}
+	/**
+	 * Encodes the attribute values; use bipolor or binary encoding depending on the value of isBipolar
+	 * @param isBipolar
+	 */
 	public void encode( boolean isBipolar ) {
 		this.encodedAttrs = new ArrayList< ArrayList< Double[] > >();
 		// perform encoding for the values
@@ -158,6 +162,10 @@ public class Attributes {
 			this.encodedAttrs.add( attrVals );
 		}
 	}
+	/**
+	 * Getter method for encodedAttrs
+	 * @return
+	 */
 	public ArrayList< ArrayList< Double[] > > getEncodedAttrs() {
 		return this.encodedAttrs;
 	}

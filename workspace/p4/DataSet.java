@@ -360,7 +360,7 @@ public class DataSet {
 		double classLabel = this.examples.get( 0 ).get( classIdx );
 		for( int i = 1; i < this.examples.size(); i++ ) {
 			if( classLabel != this.examples.get( i ).get( classIdx ) ) {
-				// if the class of the first example doesn't match with this example's class; return false
+				// if the class of the first example does not match with this example class; return false
 				return false;
 			}
 		}

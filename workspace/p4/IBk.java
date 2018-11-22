@@ -116,7 +116,7 @@ public class IBk extends Classifier implements Serializable, OptionHandler {
 	 * @param options - the arguments
 	 */
 	public void setOptions( String args[] ) {
-		// search for '-k' and if it exists, update the value of k
+		// search for -k and if it exists, update the value of k
 		if( Arrays.asList(args).contains("-k") ) {
 			this.setK( Integer.parseInt( args[Arrays.asList(args).indexOf("-k") + 1] ) );
 		}

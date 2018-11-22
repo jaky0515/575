@@ -63,7 +63,7 @@ public class Performance extends Object {
 		}
 		this.confusionMatrix[ actual ][ predicted ]++;
 		// increment correct if actual and predicted match
-		this.corrects += ( actual == predicted ) ? 1 : 0;
+		this.corrects += ( (double) actual == predicted ) ? 1 : 0;
 	}
 	/**
 	 * Increment values using a given Performance object
@@ -122,7 +122,7 @@ public class Performance extends Object {
 		strBuilder.append("Performance:\n\t** Accuracy = ").append( Math.round( this.getAccuracy() * 100.00 ) ).append( "%" );
 		strBuilder.append("\n\t** SDAcc = ").append( this.getSDAcc() );
 		if( this.c > 2 ) {
-			strBuilder.append("\n\t** This data-set is not a two-class data-set, therefore, AUC and SDAUC value don't exist");
+			strBuilder.append("\n\t** This data-set is not a two-class data-set, therefore, AUC and SDAUC value do not exist");
 		}
 		else {
 			strBuilder.append("\n\t** AUC = ").append( Math.round( ( ( this.avgAUC == null ) ? this.getAUC() : this.avgAUC ) * 100.00 ) ).append( "%" );

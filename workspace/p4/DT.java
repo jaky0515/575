@@ -88,7 +88,7 @@ public class DT extends Classifier implements Serializable, OptionHandler {
 		if( options == null ) {
 			throw new Exception("Error: invalid options passed-in!");
 		}
-		// search for '-u' and if it exists, update the value of isPrune
+		// search for -u and if it exists, update the value of isPrune
 		this.doPrune = Arrays.asList( options ).contains( "-u" ) ? false : true;
 	}
 	/**

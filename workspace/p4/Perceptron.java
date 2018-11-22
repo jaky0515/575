@@ -8,6 +8,7 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	protected int maxIterCnt = 50000;
 	protected boolean fc = false;
 	protected Attributes attributes = null;
+	private ArrayList< double[] > encodedExs = new ArrayList< double[] >();
 
 	/**
 	 * Default constructor
@@ -31,7 +32,7 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	 * @param options - the arguments
 	 */
 	public void setOptions( String options[] ) {
-		// search for '-fc' and if it exists, update the value of fc
+		// search for -fc and if it exists, update the value of fc
 		this.setFc( Arrays.asList( options ).contains( "-fc" ) ? true : false);
 	}
 	/**
@@ -69,38 +70,32 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	 * @return double[] - distribution
 	 */
 	public double[] getDistribution( Example example ) throws Exception {
-		ArrayList< ArrayList< Double[] > > encodedAttrs = this.attributes.getEncodedAttrs();
-		double[] x_i = new double[ this.W.length ];
-		int counter = 0;
-		for(int j = 0; j < encodedAttrs.size() - 1; j++) {
-			if( this.attributes.get( j ) instanceof NumericAttribute ) {
-				x_i[ counter++ ] = example.get( j );
-			}
-			else {
-				int attrIdx = example.get( j ).intValue();
-				for(int k = 0; k < encodedAttrs.get( j ).get( attrIdx ).length; k++) {
-					Double attrVal = encodedAttrs.get( j ).get( attrIdx )[ k ];
-					x_i[ counter++ ] = attrVal;
-				}
-			}
-		}
-		x_i[ counter ] = -1.0;	// add bias
-		double product = 0.0;
-		for(int j = 0; j < x_i.length; j++) {
-			product += this.W[ j ] * x_i[ j ];
-		}
+		double[] x_i = Utils.getEncodedExample( example, this.W.length, this.attributes );
+		double product = Utils.dotProduct( this.W, x_i );
 		double[] dist = new double[ 2 ];
 		if( this.fc ) {
-			double lambda = 1.0;
-			double sigmoid = 1 / ( 1 + ( Math.exp( -1.0 * lambda * product ) ) );
+			double sigmoid = Utils.sigmoid( product );
 			dist[ 0 ] = 1.0 - sigmoid;
 			dist[ 1 ] = sigmoid;
 		}
 		else {
-			dist[ 0 ] = ( product >= 0 ) ? -1.0 : 1.0;
-			dist[ 1 ] = ( product >= 0 ) ? 1.0 : -1.0;
+			dist[ 0 ] = ( product >= 0 ) ? 0.0 : 1.0;
+			dist[ 1 ] = ( product >= 0 ) ? 1.0 : 0.0;
 		}
 		return dist;
+	}
+	private void encodeExamples( DataSet dataset ) {
+		ArrayList< ArrayList< Double[] > > encodedAttrs = dataset.getAttributes().getEncodedAttrs();
+		int exampleLen = 0;
+		for(int i = 0; i < encodedAttrs.size() - 1; i++) {
+			exampleLen += encodedAttrs.get( i ).get( 0 ).length;
+		}
+		this.encodedExs = new ArrayList< double[] >();
+		for(int i = 0; i < dataset.getExamples().size(); i++) {
+			Example example = dataset.getExamples().get( i );
+			double[] x_i = Utils.getEncodedExample( example, exampleLen, this.attributes );
+			this.encodedExs.add( x_i );
+		}
 	}
 	/**
 	 * Train using a given data-set
@@ -113,21 +108,17 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 		}
 
 		// perform bipolar encoding for the attribute values
-		if( this.attributes == null ) {
-			dataset.getAttributes().encode( true );
-			this.attributes = dataset.getAttributes();
-		}
+		dataset.getAttributes().encode( true );
+		this.attributes = dataset.getAttributes();
+		this.encodeExamples( dataset );
 
 		// initialize the weight vector
 		ArrayList< ArrayList< Double[] > > encodedAttrs = this.attributes.getEncodedAttrs();
-		int w_len = 1;	// start with 1 since including bias
+		int w_len = 0;
 		for(int i = 0; i < encodedAttrs.size() - 1; i++) {
 			w_len += encodedAttrs.get( i ).get( 0 ).length;
 		}
 		this.W = new double[ w_len ];
-		for(int i = 0; i < this.W.length; i++) {
-			this.W[ i ] = 0.0;
-		}
 		boolean isConverged = false;
 		int iterCount = 0;
 		int classIdx = this.attributes.getClassIndex();
@@ -136,30 +127,12 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 			isConverged = true;
 			for(int i = 0; i < dataset.getExamples().size(); i++) {
 				Example example = dataset.getExamples().get( i );
-				double[] x_i = new double[ w_len ];
-				int counter = 0;
-				for(int j = 0; j < encodedAttrs.size() - 1; j++) {
-					if( this.attributes.get( j ) instanceof NumericAttribute ) {
-						x_i[ counter++ ] = example.get( j );
-					}
-					else {
-						int attrIdx = example.get( j ).intValue();
-						for(int k = 0; k < encodedAttrs.get( j ).get( attrIdx ).length; k++) {
-							Double attrVal = encodedAttrs.get( j ).get( attrIdx )[ k ];
-							x_i[ counter++ ] = attrVal;
-						}
-					}
-				}
-				x_i[ counter ] = -1.0;	// add bias
+				double[] x_i = this.encodedExs.get( i );
 				double y_i = encodedAttrs.get( classIdx ).get( example.get( classIdx ).intValue() )[ 0 ];
-				double product = 0.0;
-				for(int j = 0; j < x_i.length; j++) {
-					product += this.W[ j ] * x_i[ j ];
-				}
-
+				double product = Utils.dotProduct( this.W, x_i );
 				if( y_i * product <= 0.0 ) {
 					// update the weight vector
-					for(int j = 0; j < w_len; j++) {
+					for(int j = 0; j < this.W.length; j++) {
 						this.W[ j ] += ( this.learningRate * y_i * x_i[ j ] );
 					}
 					isConverged = false;
@@ -174,6 +147,10 @@ public class Perceptron extends Classifier implements Serializable, OptionHandle
 	public Classifier clone() {
 		return ( Perceptron ) Utils.deepClone( this );
 	}
+	/**
+	 * Setter method for fc (use of calibration)
+	 * @param fc
+	 */
 	public void setFc( boolean fc ) {
 		this.fc = fc;
 	}
