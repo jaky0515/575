@@ -171,4 +171,12 @@ public class Performance extends Object {
 	public void setAvgAUC( double avgAUC ) {
 		this.avgAUC = avgAUC;
 	}
+	/**
+	 * Compute and return the averaged F1 measure
+	 * @return
+	 */
+	public double getAvgF1() {
+		double result = 0.0;
+		return result;
+	}
 }

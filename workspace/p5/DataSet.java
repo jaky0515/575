@@ -181,8 +181,10 @@ public class DataSet {
 		}
 		// create data-sets and update values
 		DataSet trainSet = new DataSet( this.attributes );
+		trainSet.name = this.name;
 		trainSet.setFolds( this.folds );
 		DataSet testSet = new DataSet( this.attributes );
+		testSet.name = this.name;
 		testSet.setFolds( this.folds );
 		// fill test and train data-sets
 		for(int i = 0; i < this.examples.size(); i++) {

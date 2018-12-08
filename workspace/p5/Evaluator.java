@@ -16,7 +16,7 @@ public class Evaluator implements OptionHandler {
 	private Double holdouts = null;
 	private Classifier classifier;
 	private TrainTestSets tts;
-	
+
 	/**
 	 * Default constructor
 	 */
@@ -34,6 +34,35 @@ public class Evaluator implements OptionHandler {
 		this.classifier = classifier;
 		this.setOptions( options );
 	}
+	private Examples cleanExamples( DataSet dataset ) {
+		if( dataset.name.trim().equals( "house-votes-84" ) ) {
+			Examples examples = new Examples( dataset.attributes );
+			// remove any examples with attribute value 'u'
+			for( Example example : dataset.getExamples() ) {
+				if( example.contains( 2.0 ) ) {
+					continue;
+				}
+				examples.add( example );
+			}
+			return examples;
+		}
+		else if( dataset.name.trim().equals( "nursery" ) ) {
+			Examples examples = new Examples( dataset.attributes );
+			for( Example example : dataset.getExamples() ) {
+				if( example.get( dataset.getAttributes().getClassIndex() ) == 3.0 ) {
+					example.set( dataset.getAttributes().getClassIndex(), 0.0 );
+				}
+				else {
+					example.set( dataset.getAttributes().getClassIndex(), 1.0 );
+				}
+				examples.add( example );
+			}
+			return examples;
+		}
+		else {
+			return dataset.getExamples();
+		}
+	}
 	/**
 	 * Evaluate a model and return the result
 	 * @return Performance - performance of a trained model tested with a given test set
@@ -49,6 +78,8 @@ public class Evaluator implements OptionHandler {
 			perform = new Performance( trainSet.getAttributes() );
 			// check if hold-out value is passed-in
 			if( this.holdouts == null ) {
+				// clean invalid examples
+				trainSet.examples = this.cleanExamples( trainSet );
 				// use k-fold method
 				double totalAUC = 0;
 				for(int i = 0; i < this.folds; i++) {
@@ -107,7 +138,7 @@ public class Evaluator implements OptionHandler {
 	 * @param options - the arguments
 	 */
 	public void setOptions( String args[] ) throws Exception {
- 		List<String> argsList = Arrays.asList( args );
+		List<String> argsList = Arrays.asList( args );
 		this.tts = new TrainTestSets();
 		this.tts.setOptions( args );
 		if( argsList.contains( "-x" ) ) {
