@@ -11,12 +11,9 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 	private double initU = 2.0;
 	private double initV = 1.0;
 	private ArrayList< Integer > c = new ArrayList< Integer >();
-	private ArrayList< double[] > u = new ArrayList< double[] >();	// positive model
-	private ArrayList< double[] > v = new ArrayList< double[] >();	// negative model
 	private ArrayList< double[] > encodedExs = new ArrayList< double[] >();
 	private ArrayList< Double > encodedLabels = new ArrayList< Double >();
 	private Attributes attributes;
-
 	private double[] U;
 	private double[] V;
 
@@ -61,7 +58,22 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		x_t = this.augmentation( x_t );
 		// normalization on example
 		x_t = this.normalization( x_t );
-		double y_hat =  scoreFunction( this.U, this.V, x_t );
+		double y_hat;
+		if( this.doVoting ) {
+			double V_v = this.voting( this.V );
+			double U_v = this.voting( this.U );
+			double v1 = 0.0;
+			double v2 = 0.0;
+			for(int i = 0; i < x_t.length; i++) {
+				v1 += x_t[ i ] * V_v;
+				v2 += x_t[ i ] * U_v;
+			}
+			y_hat = v2 - v1 - this.threshold;
+			y_hat = ( y_hat > 0.0 ) ? 1.0 : ( ( y_hat == 0.0 ) ? 0.0 : -1.0);
+		}
+		else {
+			y_hat =  scoreFunction( this.U, this.V, x_t );
+		}
 		double[] dist = new double[ 2 ];
 		dist[ 0 ] = ( y_hat > 0.0 ) ? 0.0 : 1.0;
 		dist[ 1 ] = ( y_hat > 0.0 ) ? 1.0 : 0.0;
@@ -185,7 +197,7 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 			throw new Exception("Error: invalid options passed-in!");
 		}
 		// search for -v and if it exists, update the value of doVoting
-		this.doVoting = Arrays.asList( options ).contains( "-v" ) ? false : true;
+		this.doVoting = Arrays.asList( options ).contains( "-v" ) ? true : false;
 	}
 	public Classifier clone() {
 		return ( BW ) Utils.deepClone( this );

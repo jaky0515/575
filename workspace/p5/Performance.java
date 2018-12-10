@@ -21,6 +21,7 @@ public class Performance extends Object {
 	private Double avgAUC = null;
 	private double aucSum = 0.0;
 	private double aucSumSqr = 0.0;
+	private double totalF1 = 0.0;
 	
 	/**
 	 * Constructor
@@ -99,6 +100,8 @@ public class Performance extends Object {
 			this.aucSum += auc;
 			this.aucSumSqr += Math.pow( auc, 2 );
 		}
+		
+		this.totalF1 += this.getF1( p.confusionMatrix );
 	}
 	/**
 	 * Compute and return accuracy
@@ -128,8 +131,7 @@ public class Performance extends Object {
 			strBuilder.append("\n\t** AUC = ").append( Math.round( ( ( this.avgAUC == null ) ? this.getAUC() : this.avgAUC ) * 100.00 ) ).append( "%" );
 			strBuilder.append("\n\t** SDAUC = ").append( this.getSDAUC() );
 		}
-//		strBuilder.append("\n\t** F1 = ").append( Math.round( this.getAvgF1() * 100.00 ) ).append( "%" );
-		strBuilder.append("\n\t** F1 = ").append( this.getAvgF1() ).append( "%" );
+		strBuilder.append("\n\t** F1 = ").append( Math.round( this.getAvgF1() * 10000.00 ) / 100.00 ).append( "%" );
 		return strBuilder.toString();
 	}
 	/**
@@ -173,16 +175,24 @@ public class Performance extends Object {
 	public void setAvgAUC( double avgAUC ) {
 		this.avgAUC = avgAUC;
 	}
+	private double getF1( int[][] confusionMatrix ) {
+		double TP = confusionMatrix[ 0 ][ 0 ];
+		double FP = confusionMatrix[ 1 ][ 0 ];
+		double FN = confusionMatrix[ 0 ][ 1 ];
+		double precision = ( TP == 0 ) ? 0.0 : ( TP / ( TP + FP ) );
+		double recall = ( TP == 0 ) ? 0.0 : ( TP / ( TP + FN ) );
+		return ( precision * recall == 0.0 ) ? 0.0 : 2 * ( precision * recall ) / ( precision + recall );
+	}
 	/**
 	 * Compute and return the averaged F1 measure
 	 * @return
 	 */
 	public double getAvgF1() {
-		double TP = this.confusionMatrix[ 0 ][ 0 ];
-		double FP = this.confusionMatrix[ 1 ][ 0 ];
-		double FN = this.confusionMatrix[ 0 ][ 1 ];
-		double precision = ( TP / ( TP + FP ) ) / ( ( this.m == 0 ) ? 1 :this.m );
-		double recall = ( TP / ( TP + FN ) ) / ( ( this.m == 0 ) ? 1 :this.m );
-		return 2 * ( precision * recall ) / ( precision + recall );
+		if( this.m == 0 ) {
+			return this.getF1( this.confusionMatrix );
+		}
+		else {
+			return totalF1 / this.m;
+		}
 	}
 }

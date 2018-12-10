@@ -34,35 +34,6 @@ public class Evaluator implements OptionHandler {
 		this.classifier = classifier;
 		this.setOptions( options );
 	}
-	private Examples cleanExamples( DataSet dataset ) {
-		if( dataset.name.trim().equals( "house-votes-84" ) ) {
-			Examples examples = new Examples( dataset.attributes );
-			// remove any examples with attribute value 'u'
-			for( Example example : dataset.getExamples() ) {
-				if( example.contains( 2.0 ) ) {
-					continue;
-				}
-				examples.add( example );
-			}
-			return examples;
-		}
-		else if( dataset.name.trim().equals( "nursery" ) ) {
-			Examples examples = new Examples( dataset.attributes );
-			for( Example example : dataset.getExamples() ) {
-				if( example.get( dataset.getAttributes().getClassIndex() ) == 3.0 ) {
-					example.set( dataset.getAttributes().getClassIndex(), 0.0 );
-				}
-				else {
-					example.set( dataset.getAttributes().getClassIndex(), 1.0 );
-				}
-				examples.add( example );
-			}
-			return examples;
-		}
-		else {
-			return dataset.getExamples();
-		}
-	}
 	/**
 	 * Evaluate a model and return the result
 	 * @return Performance - performance of a trained model tested with a given test set
