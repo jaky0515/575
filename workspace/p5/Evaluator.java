@@ -78,8 +78,6 @@ public class Evaluator implements OptionHandler {
 			perform = new Performance( trainSet.getAttributes() );
 			// check if hold-out value is passed-in
 			if( this.holdouts == null ) {
-				// clean invalid examples
-				trainSet.examples = this.cleanExamples( trainSet );
 				// use k-fold method
 				double totalAUC = 0;
 				for(int i = 0; i < this.folds; i++) {

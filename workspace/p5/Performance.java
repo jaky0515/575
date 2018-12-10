@@ -63,7 +63,7 @@ public class Performance extends Object {
 		}
 		this.confusionMatrix[ actual ][ predicted ]++;
 		// increment correct if actual and predicted match
-		this.corrects += ( (double) actual == predicted ) ? 1 : 0;
+		this.corrects += ( (double) actual == (double) predicted ) ? 1 : 0;
 	}
 	/**
 	 * Increment values using a given Performance object
@@ -128,6 +128,8 @@ public class Performance extends Object {
 			strBuilder.append("\n\t** AUC = ").append( Math.round( ( ( this.avgAUC == null ) ? this.getAUC() : this.avgAUC ) * 100.00 ) ).append( "%" );
 			strBuilder.append("\n\t** SDAUC = ").append( this.getSDAUC() );
 		}
+//		strBuilder.append("\n\t** F1 = ").append( Math.round( this.getAvgF1() * 100.00 ) ).append( "%" );
+		strBuilder.append("\n\t** F1 = ").append( this.getAvgF1() ).append( "%" );
 		return strBuilder.toString();
 	}
 	/**
@@ -176,7 +178,12 @@ public class Performance extends Object {
 	 * @return
 	 */
 	public double getAvgF1() {
-		double result = 0.0;
-		return result;
+		double TP = this.confusionMatrix[ 0 ][ 0 ];
+		double FP = this.confusionMatrix[ 1 ][ 0 ];
+		double FN = this.confusionMatrix[ 0 ][ 1 ];
+		double precision = ( TP / ( TP + FP ) );
+		double recall = ( TP / ( TP + FN ) );
+		double f1 = 2 * ( precision * recall ) / ( precision + recall );
+		return ( this.m == 0 ) ? f1 : f1 / this.m;
 	}
 }

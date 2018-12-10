@@ -92,25 +92,9 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		}
 		return example;
 	}
-	private ArrayList< double[] > preProcessExamples( DataSet dataset ) {
+	private ArrayList< double[] > preProcessExamples( Examples examples ) {
 		ArrayList< double[] > preProcessedExs = new ArrayList< double[] >();
-		Examples examples = dataset.getExamples();
-		/*
-		Examples examples = new Examples( this.attributes );
-		// clean invalid examples
-		if( dataset.name.trim().equals("house-votes-84") ) {
-			// remove any examples with attribute value 'u'
-			for( Example example : dataset.getExamples() ) {
-				if( example.contains( 2.0 ) ) {
-					continue;
-				}
-				examples.add( example );
-				double label = example.get( this.attributes.getClassIndex() );
-				this.encodedLabels.add( ( label == 0.0) ? -1.0 : 1.0 );
-			}
-		}
-		*/
-		for( Example example : dataset.getExamples() ) {
+		for( Example example : examples ) {
 			double label = example.get( this.attributes.getClassIndex() );
 			this.encodedLabels.add( ( label == 0.0 ) ? -1.0 : 1.0 );
 		}
@@ -124,6 +108,14 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		for(int i = 0; i < preProcessedExs.size(); i++) {
 			preProcessedExs.set( i, this.normalization( preProcessedExs.get( i ) ) ); 
 		}
+		for(int i = 0; i < preProcessedExs.size(); i++) {
+			if( i == 3 ) {
+				break;
+			}
+			//			System.out.println(Arrays.toString(preProcessedExs.get(i)));
+		}
+		//		System.out.println(preProcessedExs.size());
+		//		System.out.println(preProcessedExs.get(0).length);
 		return preProcessedExs;
 	}
 	private double[] getNewU( int length ) {
@@ -142,8 +134,8 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 	}
 	private double scoreFunction( double[] u, double[] v, double[] x ) {
 		double product = Utils.dotProduct( x, u ) - Utils.dotProduct( x, v ) - this.threshold;
-		if( product == 0.0 ) System.out.println( product );
-		return ( product > 0.0 ) ? 1.0 : -1.0;
+		//		if( product == 0.0 ) System.out.println( product );
+		return ( product > 0.0 ) ? 1.0 : ( ( product == 0.0 ) ? 0.0 : -1.0);
 	}
 	private double[] getNextU( double[] u_i, double y_t ) {
 		double[] nextU = new double[ u_i.length ];
@@ -187,7 +179,7 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		dataset.getAttributes().encode( false );
 		this.attributes = dataset.getAttributes();
 		// pre-processing examples
-		ArrayList< double[] > preProcessedExs = this.preProcessExamples( dataset );
+		ArrayList< double[] > preProcessedExs = this.preProcessExamples( dataset.getExamples() );
 		this.c = new ArrayList< Integer >();
 		this.u = new ArrayList< double[] >();	// positive model
 		this.v = new ArrayList< double[] >();	// negative model
@@ -195,12 +187,36 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		this.u.add( this.getNewU( preProcessedExs.get( 0 ).length ) );
 		this.v.add( this.getNewV( preProcessedExs.get( 0 ).length ) );
 		this.c.add( 0 );
+
+		double[] u = new double[ preProcessedExs.get( 0 ).length ];
+		double[] v = new double[ preProcessedExs.get( 0 ).length ];
+		for(int i = 0; i < u.length; i++) {
+			u[ i ] = this.initU;
+			v[ i ] = this.initV;
+		}
+
 		int i = 0;
 		for(int t = 0; t < preProcessedExs.size(); t++) {
 			double[] x_t = preProcessedExs.get( t );
-			double y_hat =  scoreFunction( this.u.get( i ), this.v.get( i ), x_t );
+			double y_hat =  this.scoreFunction( this.u.get( i ), this.v.get( i ), x_t );
 			double y_t = this.encodedLabels.get( t );
 			if( y_hat != y_t ) {
+				if( t <= 10 ) {
+					//					System.out.println(Arrays.toString(u));
+					//					System.out.println(Arrays.toString(this.v.get( i )));
+				}
+				for(int j = 0; j < u.length; j++) {
+					if( x_t[ j ] > 0 ) {
+						if( y_t > 0 ) {
+							u[ j ] *= this.alpha;
+							v[ j ] *= this.beta;
+						}
+						else {
+							u[ j ] *= this.beta;
+							v[ j ] *= this.alpha;
+						}
+					}
+				}
 				// when prediction is a mistake; Update model w_i → w_i + 1
 				this.u.add( i + 1, this.getNextU( this.u.get( i ), y_t) );
 				this.v.add( i + 1, this.getNextV( this.v.get( i ), y_t) );
@@ -211,7 +227,10 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 				this.c.set( i, this.c.get( i ) + 1 );
 			}
 		}
-		System.out.println("Training done");
+		System.out.println(Arrays.toString(u));
+		System.out.println(Arrays.toString(v));
+
+		//		System.out.println("Training done");
 	}
 	public void setOptions( String[] options ) throws Exception {
 		// validation
