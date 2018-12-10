@@ -11,12 +11,15 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 	private double initU = 2.0;
 	private double initV = 1.0;
 	private double M = 1.0;
-	private ArrayList< Integer > c = new ArrayList< Integer >();
+	private double c = 0.0;
+	private ArrayList< Integer > cs = new ArrayList< Integer >();
 	private ArrayList< double[] > encodedExs = new ArrayList< double[] >();
 	private ArrayList< Double > encodedLabels = new ArrayList< Double >();
 	private Attributes attributes;
 	private double[] U;
 	private double[] V;
+	private double[] totalU;
+	private double[] totalV;
 	
 	public MBW() {
 
@@ -61,15 +64,13 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 		x_t = this.normalization( x_t );
 		double y_hat;
 		if( this.doVoting ) {
-			double V_v = this.voting( this.V );
-			double U_v = this.voting( this.U );
-			double v1 = 0.0;
-			double v2 = 0.0;
-			for(int i = 0; i < x_t.length; i++) {
-				v1 += x_t[ i ] * V_v;
-				v2 += x_t[ i ] * U_v;
+			double[] newU = new double[ this.totalU.length ];
+			double[] newV = new double[ this.totalV.length ];
+			for(int i = 0; i < newU.length; i++) {
+				newU[ i ] = this.totalU[ i ] / this.c;
+				newV[ i ] = this.totalV[ i ] / this.c;
 			}
-			y_hat = v2 - v1 - this.threshold;
+			y_hat = this.scoreFunction( newU, newV, x_t );
 			y_hat = ( y_hat > 0.0 ) ? 1.0 : ( ( y_hat == 0.0 ) ? 0.0 : -1.0);
 		}
 		else {
@@ -129,23 +130,19 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 	private double scoreFunction( double[] u, double[] v, double[] x ) {
 		return Utils.dotProduct( x, u ) - Utils.dotProduct( x, v ) - this.threshold;
 	}
-	private double voting( double[] w ){
-		double Z = 0.0;
-		for( double c_i : this.c ) {
-			Z += c_i;
-		}
-		double productSum = 0.0;
-		for(int i = 0; i < w.length; i++) {
-			productSum += w[ i ] * this.c.get( i );
-		}
-		return productSum / Z;
-	}
 	private void initWeightVectors( int length ) {
 		this.U = new double[ length ];
 		this.V = new double[ length ];
 		for(int i = 0; i < this.U.length; i++) {
 			this.U[ i ] = this.initU;
 			this.V[ i ] = this.initV;
+		}
+		
+		this.totalU = new double[ length ];
+		this.totalV = new double[ length ];
+		for(int i = 0; i < this.U.length; i++) {
+			this.totalU[ i ] = 0.0;
+			this.totalV[ i ] = 0.0;
 		}
 	}
 	private void updateWeightVectors( double[] x_t, double y_t ) {
@@ -168,24 +165,32 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 		this.attributes = dataset.getAttributes();
 		// pre-processing examples
 		ArrayList< double[] > preProcessedExs = this.preProcessExamples( dataset.getExamples() );
-		this.c = new ArrayList< Integer >();
+		this.cs = new ArrayList< Integer >();
 		// initialize vectors
 		this.initWeightVectors( preProcessedExs.get( 0 ).length );
-		this.c.add( 0 );
 		// start updating the vectors
 		int i = 0;
+		int c_i = 0;
 		for(int t = 0; t < preProcessedExs.size(); t++) {
 			double[] x_t = preProcessedExs.get( t );
 			double score =  this.scoreFunction( this.U, this.V, x_t );
 			double y_t = this.encodedLabels.get( t );
 			if( ( score * y_t ) <= this.M ) {
+				double[] U_i = this.U;
+				double[] V_i = this.V;
+				for(int j = 0; j < U_i.length; j++) {
+					this.totalU[ j ] += U_i[ j ] * c_i;
+					this.totalV[ j ] += V_i[ j ] * c_i;
+				}
 				// when prediction is a mistake; Update model w_i → w_i + 1
 				this.updateWeightVectors( x_t, y_t );
-				this.c.add( i + 1, this.c.get( i ) );
+				this.cs.add( i, c_i );
+				c_i = 0;
 				i++;
 			}
 			else {
-				this.c.set( i, this.c.get( i ) + 1 );
+				c_i++;
+				this.c++;
 			}
 		}
 	}
