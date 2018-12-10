@@ -193,8 +193,6 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 				this.c++;
 			}
 		}
-//		System.out.println(Arrays.toString(this.U));
-//		System.out.println(Arrays.toString(this.V));
 	}
 	public void setOptions( String[] options ) throws Exception {
 		// validation
