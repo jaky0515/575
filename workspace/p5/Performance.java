@@ -181,9 +181,8 @@ public class Performance extends Object {
 		double TP = this.confusionMatrix[ 0 ][ 0 ];
 		double FP = this.confusionMatrix[ 1 ][ 0 ];
 		double FN = this.confusionMatrix[ 0 ][ 1 ];
-		double precision = ( TP / ( TP + FP ) );
-		double recall = ( TP / ( TP + FN ) );
-		double f1 = 2 * ( precision * recall ) / ( precision + recall );
-		return ( this.m == 0 ) ? f1 : f1 / this.m;
+		double precision = ( TP / ( TP + FP ) ) / ( ( this.m == 0 ) ? 1 :this.m );
+		double recall = ( TP / ( TP + FN ) ) / ( ( this.m == 0 ) ? 1 :this.m );
+		return 2 * ( precision * recall ) / ( precision + recall );
 	}
 }

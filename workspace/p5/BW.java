@@ -17,6 +17,9 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 	private ArrayList< Double > encodedLabels = new ArrayList< Double >();
 	private Attributes attributes;
 
+	private double[] U;
+	private double[] V;
+
 	public BW() {
 
 	}
@@ -58,7 +61,7 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		x_t = this.augmentation( x_t );
 		// normalization on example
 		x_t = this.normalization( x_t );
-		double y_hat =  scoreFunction( this.u.get( this.u.size() - 1 ), this.v.get( this.v.size() - 1 ), x_t );
+		double y_hat =  scoreFunction( this.U, this.V, x_t );
 		double[] dist = new double[ 2 ];
 		dist[ 0 ] = ( y_hat > 0.0 ) ? 0.0 : 1.0;
 		dist[ 1 ] = ( y_hat > 0.0 ) ? 1.0 : 0.0;
@@ -108,118 +111,64 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 		for(int i = 0; i < preProcessedExs.size(); i++) {
 			preProcessedExs.set( i, this.normalization( preProcessedExs.get( i ) ) ); 
 		}
-		for(int i = 0; i < preProcessedExs.size(); i++) {
-			if( i == 3 ) {
-				break;
-			}
-			//			System.out.println(Arrays.toString(preProcessedExs.get(i)));
-		}
-		//		System.out.println(preProcessedExs.size());
-		//		System.out.println(preProcessedExs.get(0).length);
 		return preProcessedExs;
-	}
-	private double[] getNewU( int length ) {
-		double[] newU = new double[ length ];
-		for(int i = 0; i < newU.length; i++) {
-			newU[ i ] = this.initU;
-		}
-		return newU;
-	}
-	private double[] getNewV( int length ) {
-		double[] newV = new double[ length ];
-		for(int i = 0; i < newV.length; i++) {
-			newV[ i ] = this.initV;
-		}
-		return newV;
 	}
 	private double scoreFunction( double[] u, double[] v, double[] x ) {
 		double product = Utils.dotProduct( x, u ) - Utils.dotProduct( x, v ) - this.threshold;
-		//		if( product == 0.0 ) System.out.println( product );
 		return ( product > 0.0 ) ? 1.0 : ( ( product == 0.0 ) ? 0.0 : -1.0);
 	}
-	private double[] getNextU( double[] u_i, double y_t ) {
-		double[] nextU = new double[ u_i.length ];
-		for(int j = 0; j < u_i.length; j++) {
-			if( y_t > 0 ) {
-				nextU[ j ] = u_i[ j ] * this.alpha;
-			}
-			else {
-				nextU[ j ] = u_i[ j ] * this.beta;
-			}
-		}
-		return nextU;
-	}
-	private double[] getNextV( double[] v_i, double y_t ) {
-		double[] nextV = new double[ v_i.length ];
-		for(int j = 0; j < v_i.length; j++) {
-			if( y_t > 0 ) {
-				nextV[ j ] = v_i[ j ] * this.beta;
-			}
-			else {
-				nextV[ j ] = v_i[ j ] * this.alpha;
-			}
-		}
-		return nextV;
-	}
-	private double voting( ArrayList< double[] > w ){
+	private double voting( double[] w ){
 		double Z = 0.0;
 		for( double c_i : this.c ) {
 			Z += c_i;
 		}
 		double productSum = 0.0;
-		for(int i = 0; i < w.size(); i++) {
-			for(int j = 0; j < w.get( i ).length; j++) {
-				productSum += w.get( i )[ j ] * this.c.get( i );
-			}
+		for(int i = 0; i < w.length; i++) {
+			productSum += w[ i ] * this.c.get( i );
 		}
 		return productSum / Z;
 	}
-	public void train(DataSet dataset) throws Exception {
+	private void initWeightVectors( int length ) {
+		this.U = new double[ length ];
+		this.V = new double[ length ];
+		for(int i = 0; i < this.U.length; i++) {
+			this.U[ i ] = this.initU;
+			this.V[ i ] = this.initV;
+		}
+	}
+	private void updateWeightVectors( double[] x_t, double y_t ) {
+		for(int j = 0; j < this.U.length; j++) {
+			if( x_t[ j ] > 0 ) {
+				if( y_t > 0 ) {
+					this.U[ j ] *= this.alpha;
+					this.V[ j ] *= this.beta;
+				}
+				else {
+					this.U[ j ] *= this.beta;
+					this.V[ j ] *= this.alpha;
+				}
+			}
+		}
+	}
+	public void train( DataSet dataset ) throws Exception {
 		// binary encode attributes
 		dataset.getAttributes().encode( false );
 		this.attributes = dataset.getAttributes();
 		// pre-processing examples
 		ArrayList< double[] > preProcessedExs = this.preProcessExamples( dataset.getExamples() );
 		this.c = new ArrayList< Integer >();
-		this.u = new ArrayList< double[] >();	// positive model
-		this.v = new ArrayList< double[] >();	// negative model
-		// add weight vector to vector u and v
-		this.u.add( this.getNewU( preProcessedExs.get( 0 ).length ) );
-		this.v.add( this.getNewV( preProcessedExs.get( 0 ).length ) );
+		// initialize vectors
+		this.initWeightVectors( preProcessedExs.get( 0 ).length );
 		this.c.add( 0 );
-
-		double[] u = new double[ preProcessedExs.get( 0 ).length ];
-		double[] v = new double[ preProcessedExs.get( 0 ).length ];
-		for(int i = 0; i < u.length; i++) {
-			u[ i ] = this.initU;
-			v[ i ] = this.initV;
-		}
-
+		// start updating the vectors
 		int i = 0;
 		for(int t = 0; t < preProcessedExs.size(); t++) {
 			double[] x_t = preProcessedExs.get( t );
-			double y_hat =  this.scoreFunction( this.u.get( i ), this.v.get( i ), x_t );
+			double y_hat =  this.scoreFunction( this.U, this.V, x_t );
 			double y_t = this.encodedLabels.get( t );
 			if( y_hat != y_t ) {
-				if( t <= 10 ) {
-					//					System.out.println(Arrays.toString(u));
-					//					System.out.println(Arrays.toString(this.v.get( i )));
-				}
-				for(int j = 0; j < u.length; j++) {
-					if( x_t[ j ] > 0 ) {
-						if( y_t > 0 ) {
-							u[ j ] *= this.alpha;
-							v[ j ] *= this.beta;
-						}
-						else {
-							u[ j ] *= this.beta;
-							v[ j ] *= this.alpha;
-						}
-					}
-				}
 				// when prediction is a mistake; Update model w_i → w_i + 1
-				this.u.add( i + 1, this.getNextU( this.u.get( i ), y_t) );
-				this.v.add( i + 1, this.getNextV( this.v.get( i ), y_t) );
+				this.updateWeightVectors( x_t, y_t );
 				this.c.add( i + 1, this.c.get( i ) );
 				i++;
 			}
@@ -227,10 +176,8 @@ public class BW extends Classifier implements Serializable, OptionHandler {
 				this.c.set( i, this.c.get( i ) + 1 );
 			}
 		}
-		System.out.println(Arrays.toString(u));
-		System.out.println(Arrays.toString(v));
-
-		//		System.out.println("Training done");
+//		System.out.println(Arrays.toString(this.U));
+//		System.out.println(Arrays.toString(this.V));
 	}
 	public void setOptions( String[] options ) throws Exception {
 		// validation
