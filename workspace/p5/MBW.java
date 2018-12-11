@@ -71,7 +71,6 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 				newV[ i ] = this.totalV[ i ] / this.c;
 			}
 			y_hat = this.scoreFunction( newU, newV, x_t );
-			y_hat = ( y_hat > 0.0 ) ? 1.0 : ( ( y_hat == 0.0 ) ? 0.0 : -1.0);
 		}
 		else {
 			y_hat =  scoreFunction( this.U, this.V, x_t );
@@ -81,6 +80,10 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 		dist[ 1 ] = ( y_hat > 0.0 ) ? 1.0 : 0.0;
 		return dist;
 	}
+	/**
+	 * perform binary encoding for the examples
+	 * @param examples
+	 */
 	private void encodeExamples( Examples examples ) {
 		this.encodedExs = new ArrayList< double[] >();
 		int exampleLen = 0;
@@ -93,12 +96,22 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 			this.encodedExs.add( encodedEx );
 		}
 	}
+	/**
+	 * perform augmentation to the vector by adding one at the end
+	 * @param example
+	 * @return
+	 */
 	private double[] augmentation( double[] example ) {
 		double[] newEx = new double[ example.length + 1 ];
 		newEx = Arrays.copyOf( example, newEx.length );
 		newEx[ newEx.length - 1 ] = 1.0;
 		return newEx;
 	}
+	/**
+	 * perform normalization on all the values in the vector
+	 * @param example
+	 * @return
+	 */
 	private double[] normalization( double[] example ) {
 		double total = 0.0;
 		for(int j = 0; j < example.length; j++) {
@@ -109,6 +122,11 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 		}
 		return example;
 	}
+	/**
+	 * pre-process examples
+	 * @param examples
+	 * @return
+	 */
 	private ArrayList< double[] > preProcessExamples( Examples examples ) {
 		ArrayList< double[] > preProcessedExs = new ArrayList< double[] >();
 		for( Example example : examples ) {
@@ -127,9 +145,20 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 		}
 		return preProcessedExs;
 	}
+	/**
+	 * score function for BW
+	 * @param u
+	 * @param v
+	 * @param x
+	 * @return
+	 */
 	private double scoreFunction( double[] u, double[] v, double[] x ) {
 		return Utils.dotProduct( x, u ) - Utils.dotProduct( x, v ) - this.threshold;
 	}
+	/**
+	 * initialize the weight vectors
+	 * @param length
+	 */
 	private void initWeightVectors( int length ) {
 		this.U = new double[ length ];
 		this.V = new double[ length ];
@@ -145,6 +174,11 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 			this.totalV[ i ] = 0.0;
 		}
 	}
+	/**
+	 * update the values of the weight vector
+	 * @param x_t
+	 * @param y_t
+	 */
 	private void updateWeightVectors( double[] x_t, double y_t ) {
 		for(int i = 0; i < this.U.length; i++) {
 			if( x_t[ i ] > 0 ) {
@@ -182,7 +216,7 @@ public class MBW extends Classifier implements Serializable, OptionHandler {
 					this.totalU[ j ] += U_i[ j ] * c_i;
 					this.totalV[ j ] += V_i[ j ] * c_i;
 				}
-				// when prediction is a mistake; Update model w_i → w_i + 1
+				// when prediction is a mistake; Update model w_i to w_i + 1
 				this.updateWeightVectors( x_t, y_t );
 				this.cs.add( i, c_i );
 				c_i = 0;

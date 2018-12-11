@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -15,6 +16,7 @@ public class Evaluator implements OptionHandler {
 	private Double holdouts = null;
 	private Classifier classifier;
 	private TrainTestSets tts;
+	private Scaler scaler;
 
 	/**
 	 * Default constructor
@@ -31,7 +33,35 @@ public class Evaluator implements OptionHandler {
 	public Evaluator( Classifier classifier, String[] options ) throws Exception {
 		this.random = new Random( seed );
 		this.classifier = classifier;
+		this.scaler = new Scaler();
 		this.setOptions( options );
+	}
+	private DataSet cleanDs( DataSet ds ) {
+		if( !ds.getHasNumericAttributes() ) {
+			return ds;
+		}
+		Attributes attrs = new Attributes();
+		ArrayList< Integer > indices = new ArrayList< Integer >();
+		for(int i = 0; i < ds.attributes.size(); i++) {
+			if( ds.attributes.get( i ) instanceof NumericAttribute ) {
+				indices.add( i );
+				continue;
+			}
+			attrs.add(  ds.attributes.get( i ) );
+		}
+		DataSet newDs = new DataSet( attrs );
+		for(int i = 0; i < ds.examples.size(); i++) {
+			Example ex = ds.examples.get( i );
+			for(int j = 0; j < indices.size(); j++) {
+				ex.remove( indices.get( j ) - j );
+			}
+			newDs.add( ex );
+		}
+		newDs.name = ds.name;
+		newDs.random = ds.random;
+		newDs.folds = ds.folds;
+		newDs.partitions = ds.partitions;
+		return newDs;
 	}
 	/**
 	 * Evaluate a model and return the result
@@ -44,6 +74,11 @@ public class Evaluator implements OptionHandler {
 		DataSet testSet = this.tts.getTestingSet();
 		// check if the test data-set is provided
 		if( testSet.getAttributes() == null || testSet.getAttributes().size() == 0 ) {
+			if( trainSet.getHasNumericAttributes() ) {
+				this.scaler.configure( trainSet );
+				trainSet = this.scaler.scale( trainSet );
+			}
+//			trainSet = this.cleanDs( trainSet );
 			// only train data-set is provided
 			perform = new Performance( trainSet.getAttributes() );
 			// check if hold-out value is passed-in
